@@ -21,9 +21,9 @@ export function AppProvider({ children }) {
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
   const setLanguage = useCallback((value) => {
     if (!['en', 'hi', 'gu'].includes(value)) return;
-    localStorage.setItem('sahay.language', value);
+    localStorage.setItem(presentationActive ? 'sahay.language.pitch' : 'sahay.language', value);
     updateLanguage(value);
-  }, []);
+  }, [presentationActive]);
 
   useEffect(() => {
     let active = true;

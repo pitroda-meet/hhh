@@ -53,7 +53,7 @@ export async function getPresentationState() {
 export async function endPresentation() {
   return mockRequest('POST', '/api/demo/presentation/stop', () => {
     const result = isPresentationDatabase() ? snapshot() : null;
-    switchDatabaseNamespace('main');
+    if (isPresentationDatabase()) switchDatabaseNamespace('main');
     let user = null;
     try { user = publicUser(requireUser()); } catch { /* The normal workspace may be signed out. */ }
     return { user, result, now: dbNow(), isolated: false };
@@ -80,7 +80,7 @@ export async function prepareCheckpoint(sceneId) {
     if (sceneId >= 6 && !snapshot().manual_ticket) await ticketService.createTicket({ ...PITCH_CONTENT.manual, idempotency_key: 'autopitch-manual' });
     if (sceneId >= 7) {
       await authService.demoLogin('staff');
-      if (!snapshot().ticket.claimed_at) await ticketService.claimTicket(125);
+      if (!snapshot().ticket.claimed_at && !['Resolved', 'Closed'].includes(snapshot().ticket.status)) await ticketService.claimTicket(125);
       if (!snapshot().internal_note_count) await ticketService.addInternalNote(125, PITCH_CONTENT.internalNote);
       if (!['Resolved', 'Closed'].includes(snapshot().ticket.status)) {
         await ticketService.replyToTicket(125, { message: PITCH_CONTENT.resolution });
@@ -105,4 +105,12 @@ export async function prepareCheckpoint(sceneId) {
   return { data: { user, ...snapshot() }, message: 'Checkpoint ready' };
 }
 
-export const presentationService = { beginPresentation, getPresentationState, endPresentation, prepareCheckpoint };
+export async function loadAudioManifest() {
+  const response = await fetch(`${import.meta.env.BASE_URL}audio/pitch_manifest.json`, { cache: 'no-cache' });
+  if (!response.ok) throw new Error('Gujarati audio manifest is unavailable.');
+  const data = await response.json();
+  if (data.duration !== 300 || !Array.isArray(data.cues) || !data.voice?.startsWith('gu-IN-')) throw new Error('The Gujarati audio manifest does not match the five-minute pitch.');
+  return { data };
+}
+
+export const presentationService = { beginPresentation, getPresentationState, endPresentation, prepareCheckpoint, loadAudioManifest };

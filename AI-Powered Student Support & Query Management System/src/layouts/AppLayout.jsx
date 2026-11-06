@@ -11,7 +11,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 import NotificationMenu from '../components/NotificationMenu.jsx';
 
 export default function AppLayout({ role }) {
-  const { user, t, logout, demoLogin, toast } = useApp();
+  const { user, t, logout, demoLogin, toast, presentationActive } = useApp();
   const theme = useTheme();
   const desktop = useMediaQuery(theme.breakpoints.up('lg'), { noSsr: true });
   const compactHeader = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
@@ -23,7 +23,7 @@ export default function AppLayout({ role }) {
   const [search, setSearch] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  const slim = collapsed && desktop;
+  const slim = collapsed && desktop && !presentationActive;
   const width = slim ? 82 : 240;
   const nav = navigation[role];
   const current = [...nav].reverse().find((item) => item.end ? location.pathname === item.path : location.pathname.startsWith(item.path));

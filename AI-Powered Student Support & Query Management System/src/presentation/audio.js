@@ -51,7 +51,10 @@ export class BrowserGujaratiNarrator {
   tick() {
     if (this.clock.status !== 'playing' && this.clock.status !== 'buffering') return;
     const time = this.clock.time;
-    if (this.active && time >= this.active.end && !this.release) this.release = this.clock.hold('Waiting for Gujarati browser speech');
+    if (this.active && time >= this.active.end && !this.release) {
+      this.release = () => {};
+      this.release = this.clock.hold('Waiting for Gujarati browser speech');
+    }
     if (this.active) return;
     const index = this.cues.findIndex((cue) => time >= cue.start && time < cue.end);
     if (index < 0 || index === this.lastCue) return;
