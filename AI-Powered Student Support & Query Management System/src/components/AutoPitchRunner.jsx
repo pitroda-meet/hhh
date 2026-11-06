@@ -40,6 +40,7 @@ export default function AutoPitchRunner() {
   const narratorRef = useRef(null);
   const controlsRef = useRef(null);
   const canvasRef = useRef(null);
+  const waveFrameRef = useRef(null);
   const audioGraphRef = useRef(null);
   const contextRef = useRef(null);
   const preferencesRef = useRef({ volume: .85, muted: false });
@@ -47,6 +48,7 @@ export default function AutoPitchRunner() {
   const lifeRef = useRef(0);
   const preparationRef = useRef(null);
   const busyRef = useRef(false);
+  const stoppingRef = useRef(false);
   const silentUrlRef = useRef(null);
   const memoryRef = useRef({});
   const active = view.status !== 'idle';
@@ -62,6 +64,16 @@ export default function AutoPitchRunner() {
   }, [active, showPrompter]);
 
   useEffect(() => {
+    if (!active || !controlsRef.current || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      const height = `${Math.ceil(entry.target.getBoundingClientRect().height) + 24}px`;
+      if (document.documentElement.style.getPropertyValue('--pitch-dock-height') !== height) document.documentElement.style.setProperty('--pitch-dock-height', height);
+    });
+    observer.observe(controlsRef.current);
+    return () => observer.disconnect();
+  }, [active, showPrompter]);
+
+  useEffect(() => {
     if (!active) return undefined;
     // Keep the always-available presentation toolbar accessible while a page
     // opens its own Material UI dialog. Page dialogs remain fully functional.
@@ -71,7 +83,6 @@ export default function AutoPitchRunner() {
   }, [active]);
 
   useEffect(() => {
-    let frame;
     const draw = () => {
       const canvas = canvasRef.current;
       const analyser = audioGraphRef.current?.analyser;
@@ -87,10 +98,10 @@ export default function AutoPitchRunner() {
           paint.fillRect(index * 5, (30 - height) / 2, 3, height);
         }
       }
-      frame = requestAnimationFrame(draw);
+      waveFrameRef.current = requestAnimationFrame(draw);
     };
-    if (active) frame = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(frame);
+    if (active) waveFrameRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(waveFrameRef.current);
   }, [active, audioMode]);
 
   const ensureAudioGraph = async () => {
@@ -142,6 +153,7 @@ export default function AutoPitchRunner() {
       validatePitchPlan();
       if (GU_SCENES.length !== 12 || ROMAN_SCENES.length !== 12) throw new Error('The teleprompter files must contain twelve scene paragraphs.');
       await ensureAudioGraph();
+      if (generation !== lifeRef.current) return;
       preparationRef.current = presentationService.beginPresentation();
       const [, source] = await Promise.all([preparationRef.current, prepareAudio(), preloadPitchRoutes()]);
       if (generation !== lifeRef.current) return;
@@ -179,6 +191,8 @@ export default function AutoPitchRunner() {
   };
 
   const stop = async () => {
+    if (stoppingRef.current) return;
+    stoppingRef.current = true;
     ++lifeRef.current;
     busyRef.current = true;
     clockRef.current?.dispose(); narratorRef.current?.stop();
@@ -200,7 +214,7 @@ export default function AutoPitchRunner() {
       delete window.__sahayPitch;
       setView(initialView());
     } catch (error) { setView((current) => ({ ...current, status: 'error', error: errorMessage(error) })); }
-    finally { busyRef.current = false; }
+    finally { busyRef.current = false; stoppingRef.current = false; }
   };
 
   const togglePause = async () => {

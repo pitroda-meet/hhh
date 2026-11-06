@@ -22,6 +22,8 @@ export class AudioPitchClock {
     this.holds = new Set();
     this.subscribers = new Set();
     this.pending = null;
+    this.pendingHoldRelease = null;
+    this.bufferLog = [];
     this.overlay = null;
     this.activeStep = null;
     this.lastPublish = 0;
@@ -73,12 +75,15 @@ export class AudioPitchClock {
 
   hold(reason) {
     const token = Symbol(reason);
+    const entry = { reason, at: this.time, wallStart: performance.now(), durationMs: null };
+    this.bufferLog.push(entry);
     this.holds.add(token);
     this.audio.pause();
     if (this.intentToPlay) this.status = 'buffering';
     this.publish(true);
     return () => {
       if (!this.holds.delete(token)) return;
+      entry.durationMs = performance.now() - entry.wallStart;
       if (!this.holds.size && this.intentToPlay && this.status !== 'disposed') {
         this.status = 'playing';
         this.audio.play().catch((error) => this.fail(error));
@@ -108,10 +113,13 @@ export class AudioPitchClock {
     if (['idle', 'disposed', 'completed'].includes(this.status)) return;
     if (this.status === 'playing') {
       this.observeRoute();
-      if (this.time >= 299.99) { this.finish(); return; }
+      if (this.time >= 300) { this.finish(); return; }
       if (!this.pending) {
         const next = this.steps.find((step) => !this.done.has(step.id) && step.at <= this.time + .004);
         if (next) void this.runStep(next);
+      } else if (!this.pendingHoldRelease && this.steps.some((step) => !this.done.has(step.id) && step.at <= this.time)) {
+        this.pendingHoldRelease = () => {};
+        this.pendingHoldRelease = this.hold('Finishing the previous scripted action');
       }
     }
     this.publish();
@@ -135,7 +143,13 @@ export class AudioPitchClock {
       entry.status = 'failed'; entry.error = error.message;
       this.fail(error, step);
     } finally {
-      if (generation === this.generation) { this.pending = null; this.publish(true); }
+      if (generation === this.generation) {
+        this.pending = null;
+        const release = this.pendingHoldRelease;
+        this.pendingHoldRelease = null;
+        release?.();
+        this.publish(true);
+      }
     }
   }
 
@@ -154,6 +168,7 @@ export class AudioPitchClock {
     this.controller = new AbortController();
     this.generation += 1;
     this.pending = null;
+    this.pendingHoldRelease = null;
     this.holds.clear();
     this.currentError = null;
     this.activeStep = null;
@@ -176,6 +191,7 @@ export class AudioPitchClock {
   finish() {
     if (this.status === 'completed' || this.status === 'disposed') return;
     this.audio.pause();
+    if (this.audio.currentTime > 300) this.audio.currentTime = 300;
     this.intentToPlay = false;
     this.status = 'completed';
     this.publish(true);
@@ -183,7 +199,7 @@ export class AudioPitchClock {
   }
 
   report() {
-    return { duration: 300, master: 'HTMLAudioElement.currentTime', completed: this.status === 'completed', visitedRoutes: [...this.visited.values()], missingRoutes: PITCH_ROUTES.filter((route) => !this.visited.has(route.key)).map(({ key, path, label }) => ({ key, path, label })), modules: this.snapshot().modules, moduleTotal: PITCH_MODULES.length, actions: this.actionLog.map((entry) => ({ ...entry })) };
+    return { duration: 300, master: 'HTMLAudioElement.currentTime', completed: this.status === 'completed', visitedRoutes: [...this.visited.values()], missingRoutes: PITCH_ROUTES.filter((route) => !this.visited.has(route.key)).map(({ key, path, label }) => ({ key, path, label })), modules: this.snapshot().modules, moduleTotal: PITCH_MODULES.length, buffers: this.bufferLog.map(({ reason, at, durationMs }) => ({ reason, at, durationMs })), actions: this.actionLog.map((entry) => ({ ...entry })) };
   }
 
   dispose() {

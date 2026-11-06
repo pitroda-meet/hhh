@@ -87,7 +87,8 @@ export function createInteractions(clock, signal, onHighlight = () => {}) {
     const scrollingPage = !container || container === document.body;
     const scroller = scrollingPage ? document.scrollingElement : container;
     const rect = element.getBoundingClientRect();
-    const bounds = scrollingPage ? { top: 0, height: window.innerHeight - 180 } : container.getBoundingClientRect();
+    const dockHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pitch-dock-height')) || 166;
+    const bounds = scrollingPage ? { top: 0, height: window.innerHeight - dockHeight - 20 } : container.getBoundingClientRect();
     const from = scroller.scrollTop;
     const to = Math.max(0, Math.min(scroller.scrollHeight - scroller.clientHeight, from + rect.top - bounds.top - Math.max(0, (bounds.height - rect.height) / 2)));
     if (Math.abs(to - from) > 3) await animate(durationMs, (progress) => { scroller.scrollTop = from + (to - from) * (.5 - Math.cos(Math.PI * progress) / 2); });
