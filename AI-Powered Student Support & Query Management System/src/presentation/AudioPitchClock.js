@@ -23,6 +23,7 @@ export class AudioPitchClock {
     this.subscribers = new Set();
     this.pending = null;
     this.pendingHoldRelease = null;
+    this.animationCount = 0;
     this.bufferLog = [];
     this.overlay = null;
     this.activeStep = null;
@@ -117,7 +118,7 @@ export class AudioPitchClock {
       if (!this.pending) {
         const next = this.steps.find((step) => !this.done.has(step.id) && step.at <= this.time + .004);
         if (next) void this.runStep(next);
-      } else if (!this.pendingHoldRelease && this.steps.some((step) => !this.done.has(step.id) && step.at <= this.time)) {
+      } else if (!this.pendingHoldRelease && !this.animationCount && this.steps.some((step) => !this.done.has(step.id) && step.at <= this.time)) {
         this.pendingHoldRelease = () => {};
         this.pendingHoldRelease = this.hold('Finishing the previous scripted action');
       }

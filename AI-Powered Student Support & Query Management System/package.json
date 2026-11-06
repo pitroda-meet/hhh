@@ -8,8 +8,10 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node --test tests/services.test.js",
-    "test:e2e": "playwright test"
+    "test": "node --test tests/services.test.js tests/presentation.test.js",
+    "test:e2e": "playwright test",
+    "test:pitch": "playwright test tests/e2e/autopitch.spec.js",
+    "pitch:audio": "python3 scripts/generate_pitch_audio.py"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

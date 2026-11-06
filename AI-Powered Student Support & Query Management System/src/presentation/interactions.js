@@ -49,15 +49,17 @@ export function createInteractions(clock, signal, onHighlight = () => {}) {
 
   async function animate(durationMs, render, startAt = clock.time) {
     assertActive();
+    clock.animationCount += 1;
     await new Promise((finish, reject) => {
-      let frame;
-      const cancel = () => { cancelAnimationFrame(frame); signal.removeEventListener('abort', cancel); reject(abortError()); };
+      let frame, settled = false;
+      const cleanup = () => { if (settled) return; settled = true; clock.animationCount = Math.max(0, clock.animationCount - 1); cancelAnimationFrame(frame); signal.removeEventListener('abort', cancel); };
+      const cancel = () => { cleanup(); reject(abortError()); };
       const update = () => {
         if (signal.aborted) return cancel();
         if (!clock.userPaused) {
           const progress = Math.min(1, Math.max(0, (clock.time - startAt) * 1000 / Math.max(1, durationMs)));
-          try { render(progress); } catch (error) { cancelAnimationFrame(frame); signal.removeEventListener('abort', cancel); reject(error); return; }
-          if (progress >= 1) { signal.removeEventListener('abort', cancel); finish(); return; }
+          try { render(progress); } catch (error) { cleanup(); reject(error); return; }
+          if (progress >= 1) { cleanup(); finish(); return; }
         }
         frame = requestAnimationFrame(update);
       };
