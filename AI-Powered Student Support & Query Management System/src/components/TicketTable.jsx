@@ -1,0 +1,25 @@
+import { Avatar, Box, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { ArrowForwardRounded, AutoAwesomeRounded } from '@mui/icons-material';
+import { Link, useNavigate } from 'react-router-dom';
+import { useApp } from '../context/appContext.js';
+import { formatDate, initials } from '../utils/format.js';
+import { EmptyState, PriorityChip, SlaBadge, StatusChip } from './ui.jsx';
+
+export default function TicketTable({ tickets = [], compact = false, showStudent = false, showSla = false, now, onReassign, onClaim, claiming }) {
+  const { user, t } = useApp();
+  const navigate = useNavigate();
+  if (!tickets.length) return <EmptyState title={t('noTickets')} description={t('noTicketsHint')} />;
+  return <TableContainer data-pitch="tickets-table"><Table size="small" aria-label="Support queries" sx={{ minWidth: compact ? 590 : 850 }}><TableHead><TableRow><TableCell>{t('ticketId')}</TableCell><TableCell>{t('subject')}</TableCell>{showStudent && <TableCell>{t('student')}</TableCell>}<TableCell>{t('status')}</TableCell>{!compact && <TableCell>{t('priority')}</TableCell>}{showSla ? <TableCell>{t('sla')}</TableCell> : <TableCell>{t('created')}</TableCell>}<TableCell align="right">{t('actions')}</TableCell></TableRow></TableHead><TableBody>{tickets.map((ticket) => <TableRow data-pitch-ticket={ticket.id} hover key={ticket.id}>
+    <TableCell sx={{ whiteSpace: 'nowrap' }}><Button component={Link} to={`/${user.role}/queries/${ticket.id}`} sx={{ fontSize: '.68rem', p: 0, minWidth: 0, fontWeight: 650, color: '#416e87', fontFamily: 'Inter, sans-serif' }}>{ticket.ticket_number}</Button></TableCell>
+    <TableCell sx={{ maxWidth: compact ? 230 : 300 }}><Stack direction="row" alignItems="center" spacing={.6}><Typography variant="body2" sx={{ fontWeight: 550, fontSize: '.75rem', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ticket.subject}</Typography>{ticket.source === 'ai' && <AutoAwesomeRounded sx={{ fontSize: 12, color: '#d39560', flexShrink: 0 }} />}</Stack><Typography variant="caption" color="text.secondary" sx={{ fontSize: '.65rem' }}>{t(ticket.category?.name || 'General')}</Typography></TableCell>
+    {showStudent && <TableCell><Stack direction="row" alignItems="center" spacing={1}><Avatar sx={{ width: 27, height: 27, fontSize: 9, bgcolor: '#edf2f6', color: '#6d899c' }}>{initials(ticket.student?.name)}</Avatar><Typography variant="caption" noWrap>{ticket.student?.name}</Typography></Stack></TableCell>}
+    <TableCell><StatusChip status={ticket.status} /></TableCell>{!compact && <TableCell><PriorityChip priority={ticket.priority} /></TableCell>}
+    <TableCell sx={{ whiteSpace: 'nowrap' }}>{showSla ? <SlaBadge ticket={ticket} now={now} /> : <Typography variant="caption" color="text.secondary">{formatDate(ticket.created_at)}</Typography>}</TableCell>
+    <TableCell align="right">{onClaim && !ticket.claimed_at && !['Resolved', 'Closed'].includes(ticket.status) && (!ticket.assigned_to || ticket.assigned_to === user.id) && <Button data-pitch-claim={ticket.id} disabled={claiming === ticket.id} size="small" onClick={() => onClaim(ticket)} sx={{ fontSize: '.67rem', mr: .5 }}>{t('claimTicket')}</Button>}{onReassign && !['Resolved', 'Closed'].includes(ticket.status) ? <Button data-pitch-reassign={ticket.id} size="small" onClick={() => onReassign(ticket)} sx={{ fontSize: '.68rem' }}>{t('reassign')}</Button> : <Button size="small" aria-label={`View ${ticket.ticket_number}`} onClick={() => navigate(`/${user.role}/queries/${ticket.id}`)} sx={{ minWidth: 24, p: .5, color: '#8398a6' }}><ArrowForwardRounded sx={{ fontSize: 16 }} /></Button>}</TableCell>
+  </TableRow>)}</TableBody></Table></TableContainer>;
+}
+
+export function TicketSummary({ ticket, action = true }) {
+  const { user, t } = useApp();
+  return <Box sx={{ p: 2.2, border: '1px solid #d8e9e0', borderRadius: 2.5, bgcolor: '#f8fcfa', mt: 1.5 }}><Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}><Typography sx={{ color: '#185e48', fontSize: '.9rem', fontWeight: 750, letterSpacing: '.2px' }}>{ticket.ticket_number}</Typography><StatusChip status={ticket.status} /></Stack><Typography variant="body2" fontWeight={600} sx={{ mt: 1.2 }}>{ticket.subject}</Typography><Stack spacing={.8} sx={{ mt: 1.6 }}>{[[t('category'), t(ticket.category?.name || 'General')], [t('department'), t(ticket.department?.name || 'Administration')], [t('assignedTo'), ticket.assigned_staff?.name || t('notYet')]].map(([label, value]) => <Stack key={label} direction="row" justifyContent="space-between" spacing={2}><Typography variant="caption" color="text.secondary">{label}</Typography><Typography variant="caption" fontWeight={600} textAlign="right">{value}</Typography></Stack>)}</Stack>{action && <Button component={Link} to={`/${user.role}/queries/${ticket.id}`} endIcon={<ArrowForwardRounded />} size="small" sx={{ mt: 1.8, pl: 0 }}>{t('viewTicket')}</Button>}</Box>;
+}

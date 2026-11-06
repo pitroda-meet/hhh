@@ -1,0 +1,658 @@
+{
+  "version": 1,
+  "duration": 300,
+  "sample_rate": 48000,
+  "sample_count": 14400000,
+  "voice": "gu-IN-NiranjanNeural",
+  "synthetic": true,
+  "language": "gu-IN",
+  "generated_at": "2026-11-06T12:38:19.147346+00:00",
+  "scenes": [
+    {
+      "id": 1,
+      "start": 0,
+      "end": 20,
+      "voice_seconds": 18,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_1.mp3",
+      "tempo_adjustment": 0.92568
+    },
+    {
+      "id": 2,
+      "start": 20,
+      "end": 40,
+      "voice_seconds": 18,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_2.mp3",
+      "tempo_adjustment": 0.96044
+    },
+    {
+      "id": 3,
+      "start": 40,
+      "end": 60,
+      "voice_seconds": 18,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_3.mp3",
+      "tempo_adjustment": 1.04712
+    },
+    {
+      "id": 4,
+      "start": 60,
+      "end": 85,
+      "voice_seconds": 23,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_4.mp3",
+      "tempo_adjustment": 1.0583
+    },
+    {
+      "id": 5,
+      "start": 85,
+      "end": 125,
+      "voice_seconds": 37,
+      "pause_seconds": 3,
+      "src": "/audio/scenes/scene_5.mp3",
+      "tempo_adjustment": 1.02584
+    },
+    {
+      "id": 6,
+      "start": 125,
+      "end": 155,
+      "voice_seconds": 28,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_6.mp3",
+      "tempo_adjustment": 0.94372
+    },
+    {
+      "id": 7,
+      "start": 155,
+      "end": 175,
+      "voice_seconds": 18,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_7.mp3",
+      "tempo_adjustment": 1.01216
+    },
+    {
+      "id": 8,
+      "start": 175,
+      "end": 200,
+      "voice_seconds": 23,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_8.mp3",
+      "tempo_adjustment": 1.06118
+    },
+    {
+      "id": 9,
+      "start": 200,
+      "end": 225,
+      "voice_seconds": 23,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_9.mp3",
+      "tempo_adjustment": 1.01402
+    },
+    {
+      "id": 10,
+      "start": 225,
+      "end": 255,
+      "voice_seconds": 28,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_10.mp3",
+      "tempo_adjustment": 1.13669
+    },
+    {
+      "id": 11,
+      "start": 255,
+      "end": 280,
+      "voice_seconds": 23,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_11.mp3",
+      "tempo_adjustment": 1.05059
+    },
+    {
+      "id": 12,
+      "start": 280,
+      "end": 300,
+      "voice_seconds": 18,
+      "pause_seconds": 2,
+      "src": "/audio/scenes/scene_12.mp3",
+      "tempo_adjustment": 1.0156
+    }
+  ],
+  "cues": [
+    {
+      "scene": 1,
+      "sentence": 0,
+      "start": 0.18,
+      "end": 3.712,
+      "gu": "પરીક્ષાનું ફોર્મ અટકે, તો વિદ્યાર્થી કોની પાસે જાય?",
+      "roman": "Parikshaanu form atke, to vidyarthi koni paase jaay?"
+    },
+    {
+      "scene": 1,
+      "sentence": 1,
+      "start": 4.516,
+      "end": 8.373,
+      "gu": "વિભાગ શોધવામાં સમય જાય, અને એક જ પ્રશ્ન ફરી પૂછાય.",
+      "roman": "Vibhaag shodhvaamaa samay jaay, ane ek j prashna fari puchhaay."
+    },
+    {
+      "scene": 1,
+      "sentence": 2,
+      "start": 9.197,
+      "end": 12.184,
+      "gu": "જવાબ ક્યાં પહોંચ્યો, એની ખબર પડતી નથી.",
+      "roman": "Javaab kyaan pahonchyo, eni khabar padti nathi."
+    },
+    {
+      "scene": 1,
+      "sentence": 3,
+      "start": 13.019,
+      "end": 15.434,
+      "gu": "ભાષા અલગ હોય, તો મુશ્કેલી વધે.",
+      "roman": "Bhaashaa alag hoy, to mushkeli vadhe."
+    },
+    {
+      "scene": 1,
+      "sentence": 4,
+      "start": 16.303,
+      "end": 17.848,
+      "gu": "યોગ્ય મદદ મોડી મળે.",
+      "roman": "Yogya madad modi male."
+    },
+    {
+      "scene": 2,
+      "sentence": 0,
+      "start": 20.18,
+      "end": 24.235,
+      "gu": "આ છે એ.આઈ. પાવર્ડ સ્ટુડન્ટ સપોર્ટ એન્ડ ક્વેરી મેનેજમેન્ટ સિસ્ટમ.",
+      "roman": "Aa chhe E-Aai paavard student saport end kveri menejment sistam."
+    },
+    {
+      "scene": 2,
+      "sentence": 1,
+      "start": 24.999,
+      "end": 29.323,
+      "gu": "વિદ્યાર્થીથી પ્રિન્સિપાલ સુધી, બધું એક જ પ્લૅટફૉર્મ પર જોડાય છે.",
+      "roman": "Vidyarthithi prinsipal sudhi, badhu ek j pletform par jodaay chhe."
+    },
+    {
+      "scene": 2,
+      "sentence": 2,
+      "start": 30.371,
+      "end": 34.937,
+      "gu": "હાલનો ડેમો પ્રસ્તાવિત એ.પી.આઈ. માળખાવાળી મૉક સેવાઓ પર ચાલે છે.",
+      "roman": "Haalno demo prastaavit E-Pi-Aai maalakhaavaali mok sevaao par chaale chhe."
+    },
+    {
+      "scene": 2,
+      "sentence": 3,
+      "start": 35.974,
+      "end": 37.805,
+      "gu": "સહાય માટે એક સ્પષ્ટ માર્ગ.",
+      "roman": "Sahaay maate ek spasht maarg."
+    },
+    {
+      "scene": 3,
+      "sentence": 0,
+      "start": 40.18,
+      "end": 42.199,
+      "gu": "આરવ આઈ.ટી.આઈ.નો વિદ્યાર્થી છે.",
+      "roman": "Aarav Aai-Ti-Aaino vidyarthi chhe."
+    },
+    {
+      "scene": 3,
+      "sentence": 1,
+      "start": 43.163,
+      "end": 45.035,
+      "gu": "નોંધણી પછી તે લૉગિન કરે છે.",
+      "roman": "Nondhani pachhi te login kare chhe."
+    },
+    {
+      "scene": 3,
+      "sentence": 2,
+      "start": 46.006,
+      "end": 49.709,
+      "gu": "ડેશબોર્ડ પર તેના પ્રશ્નો અને તેમની હાલની સ્થિતિ દેખાય છે.",
+      "roman": "Deshbord par tena prashno ane temni haalni sthiti dekhaay chhe."
+    },
+    {
+      "scene": 3,
+      "sentence": 3,
+      "start": 50.649,
+      "end": 53.674,
+      "gu": "પ્રશ્નોત્તરીમાં શોધ કરીને સામાન્ય માહિતી મળે છે.",
+      "roman": "Prashnottarimaa shodh karine saamaanya maahiti male chhe."
+    },
+    {
+      "scene": 3,
+      "sentence": 4,
+      "start": 54.595,
+      "end": 57.842,
+      "gu": "હવે પોતાની ભાષામાં સહાય મેળવવા ચેટબોટ ખોલે છે.",
+      "roman": "Have potaani bhaashaamaa sahaay melavvaa chetbot khole chhe."
+    },
+    {
+      "scene": 4,
+      "sentence": 0,
+      "start": 60.18,
+      "end": 64.212,
+      "gu": "આરવ ગુજરાતીમાં પૂછે છે: શિષ્યવૃત્તિ માટે કેવી રીતે અરજી કરવી?",
+      "roman": "Aarav Gujarati maa puchhe chhe: shishyavrutti maate kevi rite arji karvi?"
+    },
+    {
+      "scene": 4,
+      "sentence": 1,
+      "start": 64.925,
+      "end": 67.458,
+      "gu": "એ.આઈ. ભાષા અને પ્રશ્નનો વિષય ઓળખે છે.",
+      "roman": "E-Aai bhaashaa ane prashnano vishay olakhe chhe."
+    },
+    {
+      "scene": 4,
+      "sentence": 2,
+      "start": 68.409,
+      "end": 71.682,
+      "gu": "પછી મંજૂર પ્રશ્નોત્તરીમાંથી સંબંધિત જવાબ શોધે છે.",
+      "roman": "Pachhi manjoor prashnottarimaathi sambandhit javaab shodhe chhe."
+    },
+    {
+      "scene": 4,
+      "sentence": 3,
+      "start": 72.603,
+      "end": 75.385,
+      "gu": "આ ડેમોમાં અરજી માટેનું માર્ગદર્શન દેખાય છે.",
+      "roman": "Aa demo maa arji maatenu maargdarshan dekhaay chhe."
+    },
+    {
+      "scene": 4,
+      "sentence": 4,
+      "start": 76.296,
+      "end": 78.118,
+      "gu": "સાથે જવાબનો સ્રોત મળે છે.",
+      "roman": "Saathe javaabno srot male chhe."
+    },
+    {
+      "scene": 4,
+      "sentence": 5,
+      "start": 79.079,
+      "end": 82.863,
+      "gu": "ચોક્કસ માહિતી મળે, એટલે વારંવાર પૂછવાની જરૂર ઓછી થાય.",
+      "roman": "Chokkas maahiti male, etle vaaramvaar puchhavaani jaroor ochhi thaay."
+    },
+    {
+      "scene": 5,
+      "sentence": 0,
+      "start": 85.18,
+      "end": 88.527,
+      "gu": "આરવ પરીક્ષાની નોંધણીમાં આવતી ભૂલ હિન્દીમાં જણાવે છે.",
+      "roman": "Aarav parikshaani nondhanimaa aavti bhool Hindimaa janaave chhe."
+    },
+    {
+      "scene": 5,
+      "sentence": 1,
+      "start": 89.47,
+      "end": 92.743,
+      "gu": "એ.આઈ. તેને પરીક્ષા સંબંધિત પ્રશ્ન તરીકે ઓળખે છે.",
+      "roman": "E-Aai tene parikshaa sambandhit prashna tarike olakhe chhe."
+    },
+    {
+      "scene": 5,
+      "sentence": 2,
+      "start": 93.694,
+      "end": 96.936,
+      "gu": "પણ આ ચોક્કસ મુશ્કેલીનો ખાતરીવાળો જવાબ મળતો નથી.",
+      "roman": "Pan aa chokkas mushkelino khaatrivaalo javaab malto nathi."
+    },
+    {
+      "scene": 5,
+      "sentence": 3,
+      "start": 97.679,
+      "end": 101.882,
+      "gu": "તેથી અંદાજથી જવાબ આપવાને બદલે, તે જરૂરી વિગતો પૂછે છે.",
+      "roman": "Tethi andaajthi javaab aapvaane badle, te jaroori vigato puchhe chhe."
+    },
+    {
+      "scene": 5,
+      "sentence": 4,
+      "start": 102.843,
+      "end": 105.744,
+      "gu": "આરવ નોંધણી નંબર અને દેખાતી ભૂલ જણાવે છે.",
+      "roman": "Aarav nondhani nambar ane dekhaati bhool janaave chhe."
+    },
+    {
+      "scene": 5,
+      "sentence": 5,
+      "start": 106.705,
+      "end": 109.338,
+      "gu": "પછી ટિકિટ બનાવવા તેની મંજૂરી લેવાય છે.",
+      "roman": "Pachhi tikit banaavvaa teni manjoori levaay chhe."
+    },
+    {
+      "scene": 5,
+      "sentence": 6,
+      "start": 110.247,
+      "end": 113.262,
+      "gu": "મંજૂરી મળતાં પરીક્ષા વિભાગને ટિકિટ સોંપાય છે.",
+      "roman": "Manjoori maltaa parikshaa vibhaagne tikit sonpaay chhe."
+    },
+    {
+      "scene": 5,
+      "sentence": 7,
+      "start": 114.233,
+      "end": 117.754,
+      "gu": "નિયમ આધારિત ફાળવણીથી જવાબદાર કર્મચારી નક્કી થાય છે.",
+      "roman": "Niyam aadhaarit faalavanithi javaabdaar karmachaari nakki thaay chhe."
+    },
+    {
+      "scene": 5,
+      "sentence": 8,
+      "start": 118.704,
+      "end": 121.833,
+      "gu": "આરવને કોનો સંપર્ક કરવો, એની સ્પષ્ટતા મળે છે.",
+      "roman": "Aaravne kono sampark karvo, eni spashtataa male chhe."
+    },
+    {
+      "scene": 6,
+      "sentence": 0,
+      "start": 125.18,
+      "end": 129.082,
+      "gu": "પરીક્ષા વિભાગના કર્મચારીને ટિકિટ તેના ડેશબોર્ડ પર મળે છે.",
+      "roman": "Parikshaa vibhaagna karmachaarine tikit tena deshbord par male chhe."
+    },
+    {
+      "scene": 6,
+      "sentence": 1,
+      "start": 130.107,
+      "end": 133.138,
+      "gu": "વિદ્યાર્થીએ આપેલી વિગતો સાથે જ પહોંચે છે.",
+      "roman": "Vidyarthie aapeli vigato saathe j pahonche chhe."
+    },
+    {
+      "scene": 6,
+      "sentence": 2,
+      "start": 134.215,
+      "end": 137.414,
+      "gu": "એટલે ફરીથી આખી વાત સમજાવવી પડતી નથી.",
+      "roman": "Etle farithi aakhi vaat samjaavvi padti nathi."
+    },
+    {
+      "scene": 6,
+      "sentence": 3,
+      "start": 138.234,
+      "end": 142.005,
+      "gu": "કર્મચારી પ્રશ્ન પર કામ શરૂ કરે છે અને જવાબ મોકલે છે.",
+      "roman": "Karmachaari prashna par kaam sharu kare chhe ane javaab mokle chhe."
+    },
+    {
+      "scene": 6,
+      "sentence": 4,
+      "start": 143.083,
+      "end": 147.898,
+      "gu": "આ ઉદાહરણમાં સુધારાની માહિતી આપીને ટિકિટ ઉકેલાયેલી તરીકે નોંધે છે.",
+      "roman": "Aa udaaharanmaa sudhaaraani maahiti aapine tikit ukelaayeli tarike nondhe chhe."
+    },
+    {
+      "scene": 6,
+      "sentence": 5,
+      "start": 148.92,
+      "end": 152.86,
+      "gu": "બીજા વિભાગની જરૂર હોય, તો ટિકિટ આગળ મોકલી શકે છે.",
+      "roman": "Beejaa vibhaagni jaroor hoy, to tikit aagal mokli shake chhe."
+    },
+    {
+      "scene": 7,
+      "sentence": 0,
+      "start": 155.18,
+      "end": 159.116,
+      "gu": "જવાબનું નોટિફિકેશન મળતાં, આરવ ટિકિટની સમયરેખા ખોલે છે.",
+      "roman": "Javaabnu notifikeshen maltaa, Aarav tikitni samayrekhaa khole chhe."
+    },
+    {
+      "scene": 7,
+      "sentence": 1,
+      "start": 160.081,
+      "end": 163.891,
+      "gu": "અહીં દરેક તબક્કો અને જવાબદાર કર્મચારીની કામગીરી દેખાય છે.",
+      "roman": "Ahin darek tabakko ane javaabdaar karmachaarini kaamgiri dekhaay chhe."
+    },
+    {
+      "scene": 7,
+      "sentence": 2,
+      "start": 164.843,
+      "end": 168.36,
+      "gu": "જવાબ તપાસીને તે રેટિંગ અને પોતાનો ફીડબેક આપે છે.",
+      "roman": "Javaab tapaasine te reting ane potaano feedbek aape chhe."
+    },
+    {
+      "scene": 7,
+      "sentence": 3,
+      "start": 169.354,
+      "end": 172.829,
+      "gu": "આ અનુભવ આગળની સેવા સુધારવામાં પણ ઉપયોગી બને છે.",
+      "roman": "Aa anubhav aagalni sevaa sudhaarvaamaa pan upyogi bane chhe."
+    },
+    {
+      "scene": 8,
+      "sentence": 0,
+      "start": 175.18,
+      "end": 178.102,
+      "gu": "કર્મચારીએ સૂચવેલી પ્રશ્નોત્તરી એડમિન તપાસે છે.",
+      "roman": "Karmachaarie soochaveli prashnottari edmin tapaase chhe."
+    },
+    {
+      "scene": 8,
+      "sentence": 1,
+      "start": 179.043,
+      "end": 183.475,
+      "gu": "ગુજરાતી, હિન્દી અને અંગ્રેજી લખાણ ચકાસ્યા પછી તેને પ્રકાશિત કરે છે.",
+      "roman": "Gujarati, Hindi ane Angreji lakhaan chakaasyaa pachhi tene prakaashit kare chhe."
+    },
+    {
+      "scene": 8,
+      "sentence": 2,
+      "start": 184.413,
+      "end": 188.007,
+      "gu": "આ રીતે ઉપયોગી જવાબ બીજા વિદ્યાર્થીઓ માટે ઉપલબ્ધ બને છે.",
+      "roman": "Aa rite upyogi javaab beejaa vidyarthio maate uplabdh bane chhe."
+    },
+    {
+      "scene": 8,
+      "sentence": 3,
+      "start": 188.935,
+      "end": 192.21,
+      "gu": "એડમિન વપરાશકર્તાઓ, વિભાગો અને નિયમો સંભાળે છે.",
+      "roman": "Edmin vapraashkartao, vibhaago ane niyamo sambhaale chhe."
+    },
+    {
+      "scene": 8,
+      "sentence": 4,
+      "start": 193.128,
+      "end": 197.84,
+      "gu": "એ.આઈ.ના લૉગમાં જવાબ શોધવાથી ટિકિટ બનાવવા સુધીની દરેક કામગીરી દેખાય છે.",
+      "roman": "E-Aaina logmaa javaab shodhvaathi tikit banaavvaa sudhini darek kaamgiri dekhaay chhe."
+    },
+    {
+      "scene": 9,
+      "sentence": 0,
+      "start": 200.18,
+      "end": 204.848,
+      "gu": "પ્રિન્સિપાલ વિભાગોની કામગીરી, જવાબનો સમય અને બાકી ટિકિટો જોઈ શકે છે.",
+      "roman": "Prinsipal vibhaagoni kaamgiri, javaabno samay ane baaki tikito joi shake chhe."
+    },
+    {
+      "scene": 9,
+      "sentence": 1,
+      "start": 205.812,
+      "end": 209.249,
+      "gu": "અહીં ડેમોનો સમય આગળ વધારીને એસ્કલેશન બતાવીએ છીએ.",
+      "roman": "Ahin demono samay aagal vadhaarine eskaleshan bataavie chhie."
+    },
+    {
+      "scene": 9,
+      "sentence": 2,
+      "start": 210.022,
+      "end": 216.425,
+      "gu": "ચોવીસ કલાકે સુપરવાઇઝરને જાણ અને અડતાલીસ કલાકે પ્રિન્સિપાલ કે એડમિન સુધી મોકલવાની સૂચિત મર્યાદા છે.",
+      "roman": "Chovees kalaake suparvaaizarne jaan ane adtaalees kalaake prinsipal ke edmin sudhi mokalvaani soochit maryaadaa chhe."
+    },
+    {
+      "scene": 9,
+      "sentence": 3,
+      "start": 217.407,
+      "end": 219.309,
+      "gu": "મર્યાદા સંસ્થા બદલી શકે છે.",
+      "roman": "Maryaadaa sansthaa badli shake chhe."
+    },
+    {
+      "scene": 9,
+      "sentence": 4,
+      "start": 220.301,
+      "end": 222.861,
+      "gu": "જરૂર પડે, તો જવાબદારી ફરી સોંપાય.",
+      "roman": "Jaroor pade, to javaabdaari fari sonpaay."
+    },
+    {
+      "scene": 10,
+      "sentence": 0,
+      "start": 225.18,
+      "end": 228.452,
+      "gu": "પ્રસ્તાવિત રચનામાં રિએક્ટ અને મટિરિયલ યુ.આઈ. વેબસાઇટ સંભાળશે.",
+      "roman": "Prastaavit rachanaamaa Ri-ekt ane Matirial Yu-Aai vebsaait sambhaalashe."
+    },
+    {
+      "scene": 10,
+      "sentence": 1,
+      "start": 229.134,
+      "end": 233.086,
+      "gu": "લારાવેલ બારની રેસ્ટ એ.પી.આઈ. ટિકિટ સંભાળશે અને પરવાનગીઓ તપાસશે.",
+      "roman": "Laaraavel baarni Rest E-Pi-Aai tikit sambhaalashe ane parvaangio tapaasashe."
+    },
+    {
+      "scene": 10,
+      "sentence": 2,
+      "start": 233.776,
+      "end": 236.59,
+      "gu": "માયએસક્યુએલ માહિતીનો એકમાત્ર આધાર રહેશે.",
+      "roman": "Maay-Es-Kyu-El maahitino ekmaatra aadhaar raheshe."
+    },
+    {
+      "scene": 10,
+      "sentence": 3,
+      "start": 237.289,
+      "end": 240.691,
+      "gu": "પાયથન ફાસ્ટ એ.પી.આઈ. અને ગૂગલ જેમિની એ.આઈ. સેવા આપશે.",
+      "roman": "Paaythan Faast E-Pi-Aai ane Googal Jemini E-Aai sevaa aapashe."
+    },
+    {
+      "scene": 10,
+      "sentence": 4,
+      "start": 241.371,
+      "end": 243.337,
+      "gu": "એ.આઈ. ડેટાબેઝ સીધો બદલશે નહીં.",
+      "roman": "E-Aai detabez seedho badlashe nahin."
+    },
+    {
+      "scene": 10,
+      "sentence": 5,
+      "start": 244.055,
+      "end": 247.335,
+      "gu": "ઓળખ ચકાસતી લારાવેલ એ.પી.આઈ. મારફતે જ વિનંતી મોકલશે.",
+      "roman": "Olakh chakaasti Laaraavel E-Pi-Aai maarfate j vinanti mokalashe."
+    },
+    {
+      "scene": 10,
+      "sentence": 6,
+      "start": 248.044,
+      "end": 249.805,
+      "gu": "દરેક કામગીરી લૉગમાં નોંધાશે.",
+      "roman": "Darek kaamgiri logmaa nondhaashe."
+    },
+    {
+      "scene": 10,
+      "sentence": 7,
+      "start": 250.513,
+      "end": 252.843,
+      "gu": "ઉબુન્ટુ સર્વર પર ડિપ્લૉયમેન્ટનું આયોજન છે.",
+      "roman": "Ubuntu sarvar par diploymentnu aayojan chhe."
+    },
+    {
+      "scene": 11,
+      "sentence": 0,
+      "start": 255.18,
+      "end": 259.22,
+      "gu": "આ વ્યવસ્થા વિદ્યાર્થીને પ્રશ્નથી જવાબ સુધીનો સ્પષ્ટ માર્ગ આપે છે.",
+      "roman": "Aa vyavasthaa vidyarthine prashnathi javaab sudhino spasht maarg aape chhe."
+    },
+    {
+      "scene": 11,
+      "sentence": 1,
+      "start": 260.12,
+      "end": 263.7,
+      "gu": "વિભાગોની જવાબદારી અને કામની પ્રગતિ સરળતાથી દેખાય છે.",
+      "roman": "Vibhaagoni javaabdaari ane kaamni pragati saralataathi dekhaay chhe."
+    },
+    {
+      "scene": 11,
+      "sentence": 2,
+      "start": 264.648,
+      "end": 268.58,
+      "gu": "આગળ વૉટ્સએપ, મોબાઇલ ઍપ અને અવાજથી સહાયનો વિસ્તાર થઈ શકે.",
+      "roman": "Aagal Vots-ep, mobaail ep ane avaajthi sahaayno vistaar thai shake."
+    },
+    {
+      "scene": 11,
+      "sentence": 3,
+      "start": 269.346,
+      "end": 273.783,
+      "gu": "વધુ આઈ.ટી.આઈ.ને જોડીને ગુજરાતવ્યાપી પ્લૅટફૉર્મ તરફ આગળ વધી શકાય.",
+      "roman": "Vadhu Aai-Ti-Aaine jodine Gujaratvyaapi pletform taraf aagal vadhi shakaay."
+    },
+    {
+      "scene": 11,
+      "sentence": 4,
+      "start": 274.509,
+      "end": 277.826,
+      "gu": "ઊંડું વિશ્લેષણ સેવા સુધારવાના નિર્ણયો લેવામાં મદદ કરશે.",
+      "roman": "Oondu vishleshan sevaa sudhaarvaanaa nirnayo levamaa madad karashe."
+    },
+    {
+      "scene": 12,
+      "sentence": 0,
+      "start": 280.18,
+      "end": 285.099,
+      "gu": "આઈ.ટી.આઈ.ના વિદ્યાર્થીને યોગ્ય સમયે યોગ્ય મદદ મળે, એ જ અમારું લક્ષ્ય છે.",
+      "roman": "Aai-Ti-Aaina vidyarthine yogya samaye yogya madad male, e j amaaru lakshya chhe."
+    },
+    {
+      "scene": 12,
+      "sentence": 1,
+      "start": 286.051,
+      "end": 291.58,
+      "gu": "પારદર્શક કામગીરી અને જવાબદાર વિભાગો સાથે, આ છે વિદ્યાર્થીકેન્દ્રિત સેવાની સ્પષ્ટ દિશા.",
+      "roman": "Paardarshak kaamgiri ane javaabdaar vibhaago saathe, aa chhe vidyarthikendrit sevaani spasht dishaa."
+    },
+    {
+      "scene": 12,
+      "sentence": 2,
+      "start": 292.341,
+      "end": 293.081,
+      "gu": "એક વેબસાઇટ.",
+      "roman": "Ek vebsaait."
+    },
+    {
+      "scene": 12,
+      "sentence": 3,
+      "start": 293.853,
+      "end": 295.533,
+      "gu": "એક ઇન્ટેલિજન્ટ સપોર્ટ એજન્ટ.",
+      "roman": "Ek intelijant saport ejant."
+    },
+    {
+      "scene": 12,
+      "sentence": 4,
+      "start": 295.72,
+      "end": 297.88,
+      "gu": "એક સેન્ટ્રલાઇઝ્ડ સ્ટુડન્ટ સપોર્ટ સિસ્ટમ.",
+      "roman": "Ek sentralaaizd student saport sistam."
+    }
+  ]
+}

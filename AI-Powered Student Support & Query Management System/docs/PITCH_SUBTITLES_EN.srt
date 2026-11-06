@@ -1,0 +1,308 @@
+1
+00:00:00,000 --> 00:00:04,000
+An exam form is stuck.
+Who can the student ask?
+
+2
+00:00:04,000 --> 00:00:09,000
+Time goes into finding the right department.
+The same question gets asked again.
+
+3
+00:00:09,000 --> 00:00:13,000
+The student cannot tell
+where the query stands.
+
+4
+00:00:13,000 --> 00:00:16,000
+A language barrier adds to the difficulty.
+
+5
+00:00:16,000 --> 00:00:18,000
+The right help arrives late.
+
+6
+00:00:20,000 --> 00:00:25,300
+This is the AI-Powered Student Support
+& Query Management System.
+
+7
+00:00:25,300 --> 00:00:30,500
+From students to the principal,
+everyone connects on one platform.
+
+8
+00:00:30,500 --> 00:00:36,000
+This demo uses mock services
+matching the planned API structure.
+
+9
+00:00:36,000 --> 00:00:38,000
+One clear route to support.
+
+10
+00:00:40,000 --> 00:00:42,000
+Aarav is an ITI student.
+
+11
+00:00:42,000 --> 00:00:45,000
+After registration, he logs in.
+
+12
+00:00:45,000 --> 00:00:50,000
+His dashboard shows his queries
+and their current status.
+
+13
+00:00:50,000 --> 00:00:54,000
+FAQ search gives him general information.
+
+14
+00:00:54,000 --> 00:00:58,000
+He opens the chatbot for help
+in his own language.
+
+15
+00:01:00,000 --> 00:01:05,000
+Aarav asks in Gujarati:
+“How do I apply for a scholarship?”
+
+16
+00:01:05,000 --> 00:01:09,000
+The AI identifies his language
+and the subject of the query.
+
+17
+00:01:09,000 --> 00:01:13,000
+It finds a relevant answer
+in approved FAQs.
+
+18
+00:01:13,000 --> 00:01:16,500
+This demo shows guidance
+on the application process.
+
+19
+00:01:16,500 --> 00:01:19,000
+The source of the answer is visible.
+
+20
+00:01:19,000 --> 00:01:23,000
+Clear information reduces
+the need to ask repeatedly.
+
+21
+00:01:25,000 --> 00:01:29,000
+Aarav describes an examination
+registration error in Hindi.
+
+22
+00:01:29,000 --> 00:01:33,000
+The AI classifies it
+as an examination-related query.
+
+23
+00:01:33,000 --> 00:01:37,000
+But it finds no verified answer
+for this specific issue.
+
+24
+00:01:37,000 --> 00:01:42,000
+Instead of guessing,
+it asks for the details it needs.
+
+25
+00:01:42,000 --> 00:01:46,000
+Aarav shares his registration number
+and the error he sees.
+
+26
+00:01:46,000 --> 00:01:50,000
+He is then asked for permission
+to create a ticket.
+
+27
+00:01:50,000 --> 00:01:54,000
+After consent, the ticket is routed
+to the Examination department.
+
+28
+00:01:54,000 --> 00:01:58,000
+Rule-based assignment identifies
+the responsible staff member.
+
+29
+00:01:58,000 --> 00:02:02,000
+Aarav now knows who to contact.
+
+30
+00:02:05,000 --> 00:02:09,500
+The Examination staff member receives
+the ticket on their dashboard.
+
+31
+00:02:09,500 --> 00:02:13,000
+The student's details arrive with the ticket.
+
+32
+00:02:13,000 --> 00:02:16,500
+The student does not need
+to explain everything again.
+
+33
+00:02:16,500 --> 00:02:22,000
+The staff member works on the query
+and sends a reply.
+
+34
+00:02:22,000 --> 00:02:27,500
+In this example, they explain the correction
+and mark the ticket resolved.
+
+35
+00:02:27,500 --> 00:02:33,000
+If another department is needed,
+the ticket can be forwarded.
+
+36
+00:02:35,000 --> 00:02:39,000
+A reply notification prompts Aarav
+to open the ticket timeline.
+
+37
+00:02:39,000 --> 00:02:43,500
+He can see every stage
+and the responsible staff member's actions.
+
+38
+00:02:43,500 --> 00:02:48,000
+He reviews the reply,
+then gives a rating and feedback.
+
+39
+00:02:48,000 --> 00:02:53,000
+His experience can help
+improve future support.
+
+40
+00:02:55,000 --> 00:02:58,200
+The administrator reviews a staff-suggested FAQ.
+
+41
+00:02:58,200 --> 00:03:04,000
+It is published after reviewing
+the Gujarati, Hindi and English text.
+
+42
+00:03:04,000 --> 00:03:09,300
+The useful answer becomes available
+to other students.
+
+43
+00:03:09,300 --> 00:03:12,800
+The administrator manages
+users, departments and rules.
+
+44
+00:03:12,800 --> 00:03:18,000
+AI logs show every action,
+from answer retrieval to ticket creation.
+
+45
+00:03:20,000 --> 00:03:25,600
+The principal sees department performance,
+response times and pending tickets.
+
+46
+00:03:25,600 --> 00:03:29,700
+We advance the demo clock
+to demonstrate escalation.
+
+47
+00:03:29,700 --> 00:03:37,400
+Proposed: supervisor notice at 24 hours;
+principal/admin escalation at 48 hours.
+
+48
+00:03:37,400 --> 00:03:40,000
+The institute can change these thresholds.
+
+49
+00:03:40,000 --> 00:03:43,000
+Responsibility can be reassigned when needed.
+
+50
+00:03:45,000 --> 00:03:49,100
+Planned: React and Material UI
+will power the website.
+
+51
+00:03:49,100 --> 00:03:53,800
+Laravel 12 REST APIs will manage tickets
+and check permissions.
+
+52
+00:03:53,800 --> 00:03:56,400
+MySQL will be the single source of truth.
+
+53
+00:03:56,400 --> 00:04:01,100
+Python FastAPI and Google Gemini
+will provide the AI service.
+
+54
+00:04:01,100 --> 00:04:03,700
+AI will not modify the database directly.
+
+55
+00:04:03,700 --> 00:04:07,900
+It will send requests only through
+authenticated Laravel APIs.
+
+56
+00:04:07,900 --> 00:04:10,000
+Each AI action will be logged.
+
+57
+00:04:10,000 --> 00:04:13,000
+Deployment on an Ubuntu server is planned.
+
+58
+00:04:15,000 --> 00:04:20,100
+Students get a clear path
+from a question to an answer.
+
+59
+00:04:20,100 --> 00:04:24,200
+Department ownership and progress
+become easier to see.
+
+60
+00:04:24,200 --> 00:04:29,300
+Future expansion: WhatsApp, a mobile app,
+and voice-based assistance.
+
+61
+00:04:29,300 --> 00:04:33,900
+More ITIs could be connected
+through a Gujarat-wide platform.
+
+62
+00:04:33,900 --> 00:04:38,000
+Deeper analytics can help guide
+service-improvement decisions.
+
+63
+00:04:40,000 --> 00:04:46,200
+Our goal is timely, appropriate support
+for every ITI student.
+
+64
+00:04:46,200 --> 00:04:52,300
+Transparent work and accountable departments:
+a clear direction for student-centred service.
+
+65
+00:04:52,300 --> 00:05:00,000
+One Website. One Intelligent Support Agent.
+One Centralized Student Support System.

@@ -1,0 +1,34 @@
+import { useState } from 'react';
+import { Avatar, Box, Button, Chip, Collapse, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { CheckCircleOutlineRounded, CodeRounded, ExpandMoreRounded, InfoOutlined, ThumbDownAltOutlined, ThumbUpAltOutlined, VerifiedOutlined } from '@mui/icons-material';
+import { useApp } from '../context/appContext.js';
+import { translate } from '../i18n/index.js';
+import { formatTime, initials } from '../utils/format.js';
+import { TicketSummary } from './TicketTable.jsx';
+import { BrandMark } from './Brand.jsx';
+import { Link } from 'react-router-dom';
+
+export default function ChatMessage({ message, onConfirm, onFeedback, busy, references }) {
+  const { user, t } = useApp();
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const student = message.role === 'user';
+  const mt = (key) => translate(message.language, key);
+  const category = references?.categories.find((c) => c.id === message.pending_ticket?.category_id);
+  const department = references?.departments.find((d) => d.id === category?.department_id);
+  return <Stack data-pitch-message-type={message.type} data-pitch-message-id={message.id} data-pitch-message-language={message.language} direction={student ? 'row-reverse' : 'row'} spacing={1.3} alignItems="flex-start" sx={{ mb: 2.8, pl: student ? { xs: 2, sm: 8 } : 0, pr: student ? 0 : { xs: 1, sm: 6 } }}>
+    {student ? <Avatar sx={{ width: 31, height: 31, bgcolor: '#f0dfca', color: '#94764d', fontSize: 10, mt: .5 }}>{initials(user.name)}</Avatar> : <Box sx={{ mt: .3 }}><BrandMark size={31} /></Box>}
+    <Box sx={{ maxWidth: '100%', minWidth: 0 }}>
+      <Stack direction="row" alignItems="center" justifyContent={student ? 'flex-end' : 'flex-start'} spacing={1} sx={{ mb: .6 }}><Typography variant="caption" fontWeight={650} sx={{ fontSize: '.68rem' }}>{student ? user.name.split(' ')[0] : t('appName')}</Typography><Typography variant="caption" sx={{ fontSize: '.6rem', color: '#a0afba' }}>{formatTime(message.created_at)}</Typography></Stack>
+      <Box sx={{ bgcolor: student ? '#0b3954' : '#fff', color: student ? '#f4f9fc' : '#3b5366', p: { xs: 1.6, sm: 2 }, borderRadius: student ? '13px 0 13px 13px' : '0 13px 13px 13px', border: student ? 'none' : '1px solid #e5edf3', boxShadow: student ? 'none' : '0 2px 5px #143e5703' }}>
+        <Typography lang={message.language} sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: '.83rem', lineHeight: message.language === 'en' ? 1.85 : 2 }}>{message.content}</Typography>
+        {message.type === 'faq' && <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mt: 2, pt: 1.3, borderTop: '1px solid #edf2f5' }}>
+          <Chip data-pitch="faq-source" component={Link} to={`/student/faqs?faq=${message.faq_id}&lang=${message.language}`} clickable icon={<VerifiedOutlined sx={{ fontSize: '13px !important' }} />} label={mt('sourceFaq')} size="small" sx={{ bgcolor: '#ecf7f0', color: '#478969', fontSize: '.6rem', height: 23, '.MuiChip-icon': { color: 'inherit' } }} />
+          <Stack direction="row" spacing={.3}><Tooltip title={t('helpful')}><IconButton data-pitch="chat-helpful" size="small" aria-label={t('helpful')} onClick={() => onFeedback(message.id, 'up')} sx={{ color: message.feedback === 'up' ? '#248665' : '#9aadba', bgcolor: message.feedback === 'up' ? '#eef8f2' : 'transparent' }}><ThumbUpAltOutlined sx={{ fontSize: 15 }} /></IconButton></Tooltip><Tooltip title={t('notHelpful')}><IconButton data-pitch="chat-not-helpful" size="small" aria-label={t('notHelpful')} onClick={() => onFeedback(message.id, 'down')} sx={{ color: message.feedback === 'down' ? '#c77e48' : '#9aadba' }}><ThumbDownAltOutlined sx={{ fontSize: 15 }} /></IconButton></Tooltip></Stack>
+        </Stack>}
+        {message.type === 'confirmation' && <Box sx={{ mt: 2, p: 2, bgcolor: '#f8fafc', border: '1px solid #e2eaf1', borderRadius: 2.5 }}><Stack direction="row" spacing={1} alignItems="center"><InfoOutlined sx={{ fontSize: 18, color: '#638aa2' }} /><Typography variant="subtitle2">{mt('createTicketQuestion')}</Typography></Stack><Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: .8 }}>{mt('createTicketHint')}</Typography><Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.3 }}><Chip size="small" label={mt(category?.name || 'General')} sx={{ bgcolor: '#eaf1f6', color: '#567a91', fontSize: '.65rem' }} />{department && <Chip variant="outlined" size="small" label={mt(department.name)} sx={{ fontSize: '.65rem', color: '#7a8c9a', borderColor: '#d8e3ea' }} />}</Stack>{message.decision ? <Stack direction="row" alignItems="center" spacing={.6} sx={{ mt: 1.5, color: '#628577' }}><CheckCircleOutlineRounded sx={{ fontSize: 15 }} /><Typography variant="caption">{message.decision === 'created' ? mt('queryCreated') : message.decision === 'cancelled' ? mt('noThanks') : 'Details updated — use the latest card below.'}</Typography></Stack> : <Stack direction="row" spacing={1} sx={{ mt: 2 }}><Button variant="contained" size="small" onClick={() => onConfirm(message.id, true)} disabled={busy} data-testid="confirm-create-ticket">{mt('yesCreate')}</Button><Button size="small" onClick={() => onConfirm(message.id, false)} disabled={busy}>{mt('noThanks')}</Button></Stack>}</Box>}
+        {message.type === 'ticket' && message.ticket && <TicketSummary ticket={message.ticket} />}
+      </Box>
+      {!student && <Box sx={{ mt: .5 }}><Button size="small" onClick={() => setActionsOpen(!actionsOpen)} startIcon={<CodeRounded sx={{ fontSize: '12px !important' }} />} endIcon={<ExpandMoreRounded sx={{ fontSize: '14px !important', transform: actionsOpen ? 'rotate(180deg)' : 'none' }} />} sx={{ px: .3, py: .1, minHeight: 23, fontSize: '.58rem', color: '#8ca1af', '& .MuiButton-startIcon': { mr: .5 }, '& .MuiButton-endIcon': { ml: .3 } }}>{t('aiActions')}{message.actions?.length ? ` · ${message.actions.length}` : ''}</Button><Collapse in={actionsOpen}><Box sx={{ p: 1.4, mt: .5, border: '1px dashed #dbe5ec', borderRadius: 2, bgcolor: '#f5f8fb', maxWidth: 580 }}>{message.actions?.length ? <Stack spacing={1.1}>{message.actions.map((action, i) => <Box key={`${action.tool}-${i}`}><Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}><Typography component="code" sx={{ fontSize: '.66rem', fontFamily: 'monospace', color: '#477890' }}>{action.tool}</Typography><Typography variant="caption" sx={{ color: action.status === 'success' ? '#59947d' : '#bc975c', fontSize: '.58rem' }}>{action.status} · {action.duration_ms}ms</Typography></Stack><Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: .2, fontSize: '.61rem', overflowWrap: 'anywhere' }}>{action.result}</Typography></Box>)}</Stack> : <Typography variant="caption" color="text.secondary">{t('noToolNeeded')}</Typography>}</Box></Collapse></Box>}
+    </Box>
+  </Stack>;
+}
