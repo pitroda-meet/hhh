@@ -2,11 +2,13 @@ import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { AttachFileRounded } from '@mui/icons-material';
 import { useApp } from '../context/appContext.js';
 import { attachmentMetadata } from '../utils/format.js';
+import { USE_MOCK } from '../services/api.js';
 
 export default function AttachmentInput({ value = [], onChange, compact = false, disabled = false }) {
   const { t, toast } = useApp();
   const handleFiles = (event) => {
-    const files = attachmentMetadata(event.target.files);
+    const rawFiles = Array.from(event.target.files || []);
+    const files = attachmentMetadata(rawFiles).map((meta, idx) => USE_MOCK ? meta : { ...meta, mock: false, file: rawFiles[idx] });
     if (value.length + files.length > 5) { toast('Please attach up to 5 files.', 'warning'); event.target.value = ''; return; }
     onChange([...value, ...files]);
     event.target.value = '';

@@ -1,4 +1,4 @@
-import { ApiError, assertRequestEpoch, mockRequest, requireUser } from './api.js';
+import { ApiError, USE_MOCK, apiClient, assertRequestEpoch, emitDatabaseChange, mockRequest, requireUser } from './api.js';
 import { dbNow, enrichTicket, getDatabase, getDatabaseEpoch, isoNow, mutateDatabase, nextId } from '../mock/database.js';
 import { agentText, classifyIntent, detectLanguage, intentCategory, searchApprovedFaq } from '../mock/agentEngine.js';
 import { createTicket } from './ticketService.js';
@@ -28,6 +28,7 @@ function sessionDetail(db, session) {
 }
 
 export async function getSessions() {
+  if (!USE_MOCK) return (await apiClient.get('/v1/agent/sessions')).data;
   return mockRequest('GET', '/api/v1/agent/sessions', () => {
     const user = requireUser(['student']);
     return getDatabase().chat_sessions.filter((s) => s.student_id === user.id).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
@@ -35,6 +36,11 @@ export async function getSessions() {
 }
 
 export async function createSession(language = 'en') {
+  if (!USE_MOCK) {
+    const response = await apiClient.post('/v1/agent/sessions', { language });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', '/api/v1/agent/sessions', () => {
     const user = requireUser(['student']);
     const safeLanguage = ['en', 'hi', 'gu'].includes(language) ? language : 'en';
@@ -48,6 +54,7 @@ export async function createSession(language = 'en') {
 }
 
 export async function getSession(id) {
+  if (!USE_MOCK) return (await apiClient.get(`/v1/agent/sessions/${id}`)).data;
   return mockRequest('GET', `/api/v1/agent/sessions/${id}`, () => {
     const user = requireUser(['student']);
     const db = getDatabase();
@@ -56,6 +63,11 @@ export async function getSession(id) {
 }
 
 export async function sendMessage({ session_id, message, action }) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post('/v1/agent/chat', { session_id, message, action });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', '/api/v1/agent/chat', async () => {
     const epoch = getDatabaseEpoch();
     const user = requireUser(['student']);
@@ -139,6 +151,11 @@ export async function sendMessage({ session_id, message, action }) {
 
 const confirmationLocks = new Set();
 export async function confirmTicket(sessionId, messageId, confirmed) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post(`/v1/agent/sessions/${sessionId}/confirm-ticket`, { message_id: messageId, confirmed });
+    emitDatabaseChange();
+    return response.data;
+  }
   const lockKey = `${sessionId}:${messageId}`;
   if (confirmationLocks.has(lockKey)) throw new ApiError('Your ticket is being created. Please wait.');
   confirmationLocks.add(lockKey);
@@ -173,6 +190,11 @@ export async function confirmTicket(sessionId, messageId, confirmed) {
 }
 
 export async function setMessageFeedback(messageId, feedback) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post(`/v1/agent/messages/${messageId}/feedback`, { feedback });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', `/api/v1/agent/messages/${messageId}/feedback`, () => {
     const user = requireUser(['student']);
     if (!['up', 'down'].includes(feedback)) throw new ApiError('Choose helpful or not helpful.');
@@ -189,6 +211,11 @@ export async function setMessageFeedback(messageId, feedback) {
 }
 
 export async function deleteSession(id) {
+  if (!USE_MOCK) {
+    const response = await apiClient.delete(`/v1/agent/sessions/${id}`);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('DELETE', `/api/v1/agent/sessions/${id}`, () => {
     const user = requireUser(['student']);
     return mutateDatabase((db) => { findSession(db, id, user.id); db.chat_sessions = db.chat_sessions.filter((s) => s.id !== id); db.chat_messages = db.chat_messages.filter((m) => m.session_id !== id); return { deleted: true }; });

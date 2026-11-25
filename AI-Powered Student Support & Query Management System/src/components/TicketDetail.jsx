@@ -6,7 +6,7 @@ import { useApp } from '../context/appContext.js';
 import { useAsync } from '../hooks/useAsync.js';
 import { ticketService } from '../services/ticketService.js';
 import { faqService } from '../services/faqService.js';
-import { downloadMockAttachment, errorMessage, formatDateTime, initials } from '../utils/format.js';
+import { errorMessage, formatDateTime, initials } from '../utils/format.js';
 import { PRIORITIES, STATUSES, STATUS_STYLES } from '../utils/constants.js';
 import { ConfirmDialog, EmptyState, ErrorState, LoadingPage, PriorityChip, SectionTitle, SlaBadge, StatusChip } from './ui.jsx';
 import AttachmentInput from './AttachmentInput.jsx';
@@ -14,7 +14,7 @@ import ReassignDialog from './ReassignDialog.jsx';
 import FeedbackForm from './FeedbackForm.jsx';
 
 function Attachments({ items, number }) {
-  return items?.length > 0 && <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>{items.map((file, i) => <Chip key={`${file.name}-${i}`} label={file.name} icon={<AttachFileRounded sx={{ fontSize: 14 }} />} size="small" variant="outlined" onClick={() => downloadMockAttachment(file, number)} sx={{ maxWidth: 240, color: '#537c95', borderColor: '#d9e4eb' }} />)}</Stack>;
+  return items?.length > 0 && <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>{items.map((file, i) => <Chip key={`${file.name}-${i}`} label={file.name} icon={<AttachFileRounded sx={{ fontSize: 14 }} />} size="small" variant="outlined" onClick={() => ticketService.downloadAttachment(file, number)} sx={{ maxWidth: 240, color: '#537c95', borderColor: '#d9e4eb' }} />)}</Stack>;
 }
 
 export default function TicketDetail() {

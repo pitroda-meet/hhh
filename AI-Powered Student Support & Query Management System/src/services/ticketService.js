@@ -1,10 +1,15 @@
-import { ApiError, mockRequest, paginate, requireUser } from './api.js';
+import { ApiError, USE_MOCK, apiClient, emitDatabaseChange, getStoredUser, mockRequest, paginate, requireUser } from './api.js';
 import { dbNow, enrichTicket, getDatabase, isoNow, mutateDatabase, nextId, notify, publicUser } from '../mock/database.js';
 import { addStatusHistory, findAssignee, routeCategory } from '../mock/routingEngine.js';
 import { ACTIVE_STATUSES, PRIORITIES, STATUSES } from '../utils/constants.js';
+import { downloadMockAttachment } from '../utils/format.js';
 
 export function canAccessTicket(user, ticket) {
   return user.role === 'student' ? ticket.student_id === user.id : user.role === 'staff' ? user.department_ids.includes(ticket.department_id) : ['admin', 'principal'].includes(user.role);
+}
+
+function currentRole() {
+  return getStoredUser()?.role || 'student';
 }
 
 function findTicket(db, id, user) {
@@ -31,15 +36,39 @@ function listForUser(user, params) {
   return { ...paginate(tickets.map((t) => enrichTicket(db, t)), params), now: dbNow(db) };
 }
 
-export async function listStudentQueries(params = {}) { return mockRequest('GET', '/api/student/queries', () => listForUser(requireUser(['student']), params)); }
-export async function listStaffQueries(params = {}) { return mockRequest('GET', '/api/staff/queries', () => listForUser(requireUser(['staff']), params)); }
-export async function listAllTickets(params = {}) { return mockRequest('GET', '/api/admin/queries', () => listForUser(requireUser(['admin', 'principal']), params)); }
+export async function listStudentQueries(params = {}) {
+  if (!USE_MOCK) return (await apiClient.get('/student/queries', { params })).data;
+  return mockRequest('GET', '/api/student/queries', () => listForUser(requireUser(['student']), params));
+}
+
+export async function listStaffQueries(params = {}) {
+  if (!USE_MOCK) return (await apiClient.get('/staff/queries', { params })).data;
+  return mockRequest('GET', '/api/staff/queries', () => listForUser(requireUser(['staff']), params));
+}
+
+export async function listAllTickets(params = {}) {
+  if (!USE_MOCK) {
+    const role = currentRole();
+    const path = role === 'principal' ? '/principal/queries' : '/admin/queries';
+    return (await apiClient.get(path, { params })).data;
+  }
+  return mockRequest('GET', '/api/admin/queries', () => listForUser(requireUser(['admin', 'principal']), params));
+}
+
 export async function listQueries(params = {}) {
+  if (!USE_MOCK) {
+    const role = currentRole();
+    return role === 'student' ? listStudentQueries(params) : role === 'staff' ? listStaffQueries(params) : listAllTickets(params);
+  }
   const user = requireUser();
   return user.role === 'student' ? listStudentQueries(params) : user.role === 'staff' ? listStaffQueries(params) : listAllTickets(params);
 }
 
 export async function getTicket(id) {
+  if (!USE_MOCK) {
+    const role = currentRole();
+    return (await apiClient.get(`/${role}/queries/${id}`)).data;
+  }
   const role = requireUser().role;
   return mockRequest('GET', `/api/${role}/queries/${id}`, () => {
     const user = requireUser();
@@ -50,7 +79,28 @@ export async function getTicket(id) {
   });
 }
 
+function buildTicketPayload(input) {
+  const files = (input.attachments || []).map((a) => a.file).filter(Boolean);
+  if (!files.length) return input;
+  const form = new FormData();
+  if (input.subject !== undefined) form.append('subject', input.subject);
+  if (input.description !== undefined) form.append('description', input.description);
+  if (input.message !== undefined) form.append('message', input.message);
+  if (input.category_id !== undefined) form.append('category_id', String(input.category_id));
+  if (input.priority !== undefined) form.append('priority', input.priority);
+  if (input.source !== undefined) form.append('source', input.source);
+  if (input.idempotency_key) form.append('idempotency_key', input.idempotency_key);
+  files.forEach((file) => form.append('files[]', file));
+  return form;
+}
+
 export async function createTicket(input) {
+  if (!USE_MOCK) {
+    const payload = buildTicketPayload(input);
+    const response = await apiClient.post('/student/queries', payload);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', '/api/student/queries', () => {
     const user = requireUser(['student']);
     const subject = input.subject?.trim();
@@ -59,7 +109,6 @@ export async function createTicket(input) {
     if (!description || description.length < 10 || description.length > 5000) throw new ApiError('Please describe your query in 10–5,000 characters.');
     if (input.priority && !PRIORITIES.includes(input.priority)) throw new ApiError('Choose a valid priority.');
     return mutateDatabase((db) => {
-      // Idempotency protects a confirmation from duplicate clicks or retries.
       if (input.idempotency_key) {
         const existing = db.tickets.find((t) => t.student_id === user.id && t.idempotency_key === input.idempotency_key);
         if (existing) return enrichTicket(db, existing);
@@ -79,6 +128,13 @@ export async function createTicket(input) {
 }
 
 export async function replyToTicket(id, input) {
+  if (!USE_MOCK) {
+    const role = currentRole();
+    const payload = buildTicketPayload(input);
+    const response = await apiClient.post(`/${role}/queries/${id}/reply`, payload);
+    emitDatabaseChange();
+    return response.data;
+  }
   const user = requireUser();
   return mockRequest('POST', `/api/${user.role}/queries/${id}/reply`, () => {
     const actor = requireUser();
@@ -99,6 +155,12 @@ export async function replyToTicket(id, input) {
 }
 
 export async function updateTicketStatus(id, status, note = '') {
+  if (!USE_MOCK) {
+    const role = currentRole();
+    const response = await apiClient.patch(`/${role}/queries/${id}/status`, { status, note });
+    emitDatabaseChange();
+    return response.data;
+  }
   const user = requireUser(['staff', 'admin', 'principal']);
   return mockRequest('PATCH', `/api/${user.role}/queries/${id}/status`, () => {
     const actor = requireUser(['staff', 'admin', 'principal']);
@@ -117,6 +179,15 @@ export async function updateTicketStatus(id, status, note = '') {
 }
 
 export async function forwardTicket(id, input) {
+  if (!USE_MOCK) {
+    const role = currentRole();
+    const response = await apiClient.post(`/${role}/queries/${id}/forward`, {
+      ...input,
+      staff_id: input.staff_id || null,
+    });
+    emitDatabaseChange();
+    return response.data;
+  }
   const user = requireUser(['staff', 'admin', 'principal']);
   return mockRequest('POST', `/api/${user.role}/queries/${id}/forward`, () => {
     const actor = requireUser(['staff', 'admin', 'principal']);
@@ -137,6 +208,11 @@ export async function forwardTicket(id, input) {
 }
 
 export async function rateTicket(id, { rating, feedback }) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post(`/student/queries/${id}/feedback`, { rating, feedback });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', `/api/student/queries/${id}/feedback`, () => {
     const user = requireUser(['student']);
     if (!Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) throw new ApiError('Choose a rating from 1 to 5 stars.');
@@ -152,6 +228,10 @@ export async function rateTicket(id, { rating, feedback }) {
 }
 
 export async function getDashboard() {
+  if (!USE_MOCK) {
+    const role = currentRole();
+    return (await apiClient.get(`/${role}/dashboard`)).data;
+  }
   const role = requireUser().role;
   return mockRequest('GET', `/api/${role}/dashboard`, () => {
     const user = requireUser();
@@ -165,6 +245,11 @@ export async function getDashboard() {
 }
 
 export async function claimTicket(id) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post(`/staff/queries/${id}/claim`);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', `/api/staff/queries/${id}/claim`, () => {
     const user = requireUser(['staff']);
     return mutateDatabase((db) => {
@@ -183,6 +268,11 @@ export async function claimTicket(id) {
 }
 
 export async function addInternalNote(id, message) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post(`/staff/queries/${id}/internal-notes`, { message });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', `/api/staff/queries/${id}/internal-notes`, () => {
     const user = requireUser(['staff', 'admin', 'principal']);
     if (!message?.trim() || message.length > 5000) throw new ApiError('Write an internal note of up to 5,000 characters.');
@@ -196,6 +286,11 @@ export async function addInternalNote(id, message) {
 }
 
 export async function updatePriority(id, priority) {
+  if (!USE_MOCK) {
+    const response = await apiClient.patch(`/staff/queries/${id}/priority`, { priority });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('PATCH', `/api/staff/queries/${id}/priority`, () => {
     const user = requireUser(['staff', 'admin', 'principal']);
     if (!PRIORITIES.includes(priority)) throw new ApiError('Choose a valid priority.');
@@ -210,4 +305,18 @@ export async function updatePriority(id, priority) {
   });
 }
 
-export const ticketService = { listQueries, listStudentQueries, listStaffQueries, listAllTickets, getTicket, createTicket, replyToTicket, updateTicketStatus, forwardTicket, rateTicket, getDashboard, claimTicket, addInternalNote, updatePriority };
+export async function downloadAttachment(attachment, ticketNumber) {
+  if (USE_MOCK || attachment.mock || !attachment.id) {
+    downloadMockAttachment(attachment, ticketNumber);
+    return;
+  }
+  const response = await apiClient.get(`/attachments/${attachment.id}/download`, { responseType: 'blob' });
+  const url = URL.createObjectURL(response.data);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = attachment.name || 'attachment';
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+export const ticketService = { listQueries, listStudentQueries, listStaffQueries, listAllTickets, getTicket, createTicket, replyToTicket, updateTicketStatus, forwardTicket, rateTicket, getDashboard, claimTicket, addInternalNote, updatePriority, downloadAttachment };

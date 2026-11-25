@@ -1,8 +1,10 @@
-import { ApiError, mockRequest, paginate, requireUser } from './api.js';
-import { dbNow, enrichTicket, getDatabase, isoNow, mutateDatabase, nextId, publicUser } from '../mock/database.js';
+import { ApiError, USE_MOCK, apiClient, emitDatabaseChange, getStoredUser, mockRequest, paginate, requireUser } from './api.js';
+import { dbNow, enrichTicket, getDatabase, isoNow, mutateDatabase, nextId, publicUser, resetDatabase } from '../mock/database.js';
+import { runEscalation } from '../mock/routingEngine.js';
 import { ACTIVE_STATUSES, DEFAULT_PASSWORD, PRIORITIES, ROLES } from '../utils/constants.js';
 
 export async function getReferenceData() {
+  if (!USE_MOCK) return (await apiClient.get('/departments')).data;
   return mockRequest('GET', '/api/departments', () => {
     requireUser();
     const db = getDatabase();
@@ -11,6 +13,7 @@ export async function getReferenceData() {
 }
 
 export async function getManagementData(entity) {
+  if (!USE_MOCK) return (await apiClient.get(`/admin/${entity}`)).data;
   return mockRequest('GET', `/api/admin/${entity}`, () => {
     requireUser(['admin']);
     const db = getDatabase();
@@ -21,6 +24,13 @@ export async function getManagementData(entity) {
 }
 
 export async function saveRecord(entity, input) {
+  if (!USE_MOCK) {
+    const response = input.id
+      ? await apiClient.put(`/admin/${entity}/${input.id}`, input)
+      : await apiClient.post(`/admin/${entity}`, input);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest(input.id ? 'PUT' : 'POST', `/api/admin/${entity}${input.id ? `/${input.id}` : ''}`, () => {
     const actor = requireUser(['admin']);
     if (!['users', 'departments', 'categories', 'assignments', 'escalation_rules'].includes(entity)) throw new ApiError('Unknown management resource.', 404);
@@ -73,6 +83,11 @@ export async function saveRecord(entity, input) {
 }
 
 export async function deleteRecord(entity, id) {
+  if (!USE_MOCK) {
+    const response = await apiClient.delete(`/admin/${entity}/${id}`);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('DELETE', `/api/admin/${entity}/${id}`, () => {
     const actor = requireUser(['admin']);
     return mutateDatabase((db) => {
@@ -88,6 +103,11 @@ export async function deleteRecord(entity, id) {
 }
 
 export async function getReports() {
+  if (!USE_MOCK) {
+    const role = getStoredUser()?.role;
+    const path = role === 'principal' ? '/principal/reports' : '/admin/reports';
+    return (await apiClient.get(path)).data;
+  }
   return mockRequest('GET', '/api/admin/reports', () => {
     requireUser(['admin', 'principal']);
     const db = getDatabase();
@@ -117,6 +137,7 @@ export async function getReports() {
 }
 
 export async function getAiLogs(params = {}) {
+  if (!USE_MOCK) return (await apiClient.get('/admin/ai-action-logs', { params })).data;
   return mockRequest('GET', '/api/admin/ai-action-logs', () => {
     requireUser(['admin']);
     const db = getDatabase();
@@ -132,6 +153,11 @@ export async function getAiLogs(params = {}) {
 }
 
 export async function setRoutingStrategy(strategy) {
+  if (!USE_MOCK) {
+    const response = await apiClient.put('/admin/routing-rules/strategy', { routing_strategy: strategy });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('PUT', '/api/admin/routing-rules/strategy', () => {
     requireUser(['admin']);
     if (!['least_open', 'round_robin'].includes(strategy)) throw new ApiError('Choose a supported routing strategy.');
@@ -139,4 +165,28 @@ export async function setRoutingStrategy(strategy) {
   });
 }
 
-export const adminService = { getReferenceData, getManagementData, saveRecord, deleteRecord, getReports, getAiLogs, setRoutingStrategy };
+export async function simulateEscalation(hours = 24) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post('/admin/simulate-escalation', { hours });
+    emitDatabaseChange();
+    return response.data;
+  }
+  return mockRequest('POST', '/api/admin/simulate-escalation', () => {
+    const actor = requireUser(['admin', 'principal']);
+    return mutateDatabase((db) => runEscalation(db, hours, actor.id));
+  });
+}
+
+export async function demoReset() {
+  if (!USE_MOCK) {
+    const response = await apiClient.post('/demo/reset');
+    emitDatabaseChange();
+    return response.data;
+  }
+  return mockRequest('POST', '/api/demo/reset', () => {
+    resetDatabase();
+    return { reset: true };
+  });
+}
+
+export const adminService = { getReferenceData, getManagementData, saveRecord, deleteRecord, getReports, getAiLogs, setRoutingStrategy, simulateEscalation, demoReset };

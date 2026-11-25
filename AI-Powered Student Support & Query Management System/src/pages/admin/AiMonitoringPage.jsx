@@ -25,6 +25,7 @@ export default function AiMonitoringPage() {
     <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
       <Chip label={`${t('faqMatchRate')}: ${request.data?.summary.faq_match_rate || 0}%`} variant="outlined" />
       <Chip label={`${t('handoffRate')}: ${request.data?.summary.handoff_rate || 0}%`} variant="outlined" />
+      {request.data?.ai_status && <Chip label={`AI Gateway: ${request.data.ai_status.provider_label} (${request.data.ai_status.model})`} color="primary" variant="outlined" />}
       <Chip label="Approved FAQ policy · consent-gated ticket creation" sx={{ bgcolor: '#edf7f1', color: '#4c8b6d' }} />
     </Stack>
     <Card>

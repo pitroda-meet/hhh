@@ -1,7 +1,8 @@
-import { mockRequest, requireUser } from './api.js';
+import { USE_MOCK, apiClient, emitDatabaseChange, mockRequest, requireUser } from './api.js';
 import { dbNow, getDatabase, isoNow, mutateDatabase } from '../mock/database.js';
 
 export async function getNotifications() {
+  if (!USE_MOCK) return (await apiClient.get('/notifications')).data;
   return mockRequest('GET', '/api/notifications', () => {
     const user = requireUser();
     const db = getDatabase();
@@ -10,6 +11,11 @@ export async function getNotifications() {
 }
 
 export async function markAsRead(id) {
+  if (!USE_MOCK) {
+    const response = await apiClient.patch(`/notifications/${id}/read`);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('PATCH', `/api/notifications/${id}/read`, () => {
     const user = requireUser();
     return mutateDatabase((db) => {

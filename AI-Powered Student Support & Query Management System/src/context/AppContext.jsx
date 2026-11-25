@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 import { authService } from '../services/authService.js';
+import { adminService } from '../services/adminService.js';
+import { clearAuthStorage } from '../services/api.js';
 import { notificationService } from '../services/notificationService.js';
 import { translate } from '../i18n/index.js';
 import { errorMessage } from '../utils/format.js';
@@ -31,6 +33,32 @@ export function AppProvider({ children }) {
   }, []);
   useEffect(() => { document.documentElement.lang = language; }, [language]);
   useEffect(() => { window.addEventListener('sahay:database', refresh); return () => window.removeEventListener('sahay:database', refresh); }, [refresh]);
+  useEffect(() => {
+    const onUnauthorized = () => {
+      setUser(null);
+      setNotifications([]);
+    };
+    window.addEventListener('sahay:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('sahay:unauthorized', onUnauthorized);
+  }, []);
+  useEffect(() => {
+    const onKeyDown = async (event) => {
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'd') {
+        event.preventDefault();
+        try {
+          await adminService.demoReset();
+          clearAuthStorage();
+          setUser(null);
+          setNotifications([]);
+          toast('Demo database restored to clean seeded state.');
+        } catch (error) {
+          toast(errorMessage(error), 'error');
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [toast]);
   useEffect(() => { const timer = setInterval(() => setNow((current) => current + 60000), 60000); return () => clearInterval(timer); }, []);
   useEffect(() => {
     let active = true;
@@ -46,6 +74,13 @@ export function AppProvider({ children }) {
     refresh();
     return data.user;
   }, [refresh]);
+  const demoLogin = useCallback(async (role) => {
+    const { data } = await authService.demoLogin(role);
+    setNotifications([]);
+    setUser(data.user);
+    refresh();
+    return data.user;
+  }, [refresh]);
   const register = useCallback(async (input) => {
     const { data } = await authService.register(input);
     setNotifications([]);
@@ -56,7 +91,7 @@ export function AppProvider({ children }) {
   const logout = useCallback(async () => { await authService.logout(); setUser(null); setNotifications([]); }, []);
   const markRead = useCallback(async (id) => { await notificationService.markAsRead(id); }, []);
   const t = useCallback((key, values) => translate(language, key, values), [language]);
-  const value = useMemo(() => ({ user, setUser, ready, authError, language, setLanguage, t, login, register, logout, revision, refresh, notifications, now, markRead, toast }), [user, ready, authError, language, setLanguage, t, login, register, logout, revision, refresh, notifications, now, markRead, toast]);
+  const value = useMemo(() => ({ user, setUser, ready, authError, language, setLanguage, t, login, demoLogin, register, logout, revision, refresh, notifications, now, markRead, toast }), [user, ready, authError, language, setLanguage, t, login, demoLogin, register, logout, revision, refresh, notifications, now, markRead, toast]);
 
   return <AppContext.Provider value={value}>
     {children}

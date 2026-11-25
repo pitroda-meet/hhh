@@ -1,17 +1,29 @@
-import { ApiError, mockRequest, requireUser } from './api.js';
+import { ApiError, USE_MOCK, apiClient, clearAuthStorage, emitDatabaseChange, getAuthToken, mockRequest, requireUser, setAuthStorage } from './api.js';
 import { AUTH_KEY, getDatabase, isoNow, mutateDatabase, nextId, publicUser } from '../mock/database.js';
 
 export async function login({ email, password }) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post('/auth/login', { email, password });
+    const { token, user } = response.data.data;
+    setAuthStorage(token, user);
+    return response.data;
+  }
   return mockRequest('POST', '/api/auth/login', () => {
     const user = getDatabase().users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password && u.active);
     if (!user) throw new ApiError('The email or password is incorrect.', 401);
     const token = `sahay-${user.id}-${Date.now()}`;
-    localStorage.setItem(AUTH_KEY, JSON.stringify({ user_id: user.id, token }));
+    setAuthStorage(token, publicUser(user));
     return { user: publicUser(user), token };
   });
 }
 
 export async function register(input) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post('/auth/register', input);
+    const { token, user } = response.data.data;
+    setAuthStorage(token, user);
+    return response.data;
+  }
   return mockRequest('POST', '/api/auth/register', () => {
     const name = input.name?.trim();
     const email = input.email?.trim().toLowerCase();
@@ -26,23 +38,60 @@ export async function register(input) {
       return publicUser(record);
     });
     const token = `sahay-${user.id}-${Date.now()}`;
-    localStorage.setItem(AUTH_KEY, JSON.stringify({ user_id: user.id, token }));
+    setAuthStorage(token, user);
     return { user, token };
   });
 }
 
+export async function demoLogin(role) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post('/auth/demo-login', { role });
+    const { token, user } = response.data.data;
+    setAuthStorage(token, user);
+    return response.data;
+  }
+  return login({ email: `${role}@iti.demo`, password: 'Demo@2026' });
+}
+
 export async function getCurrentUser() {
+  if (!USE_MOCK) {
+    const token = getAuthToken();
+    if (!token) return { data: null };
+    try {
+      const response = await apiClient.get('/auth/me');
+      setAuthStorage(token, response.data.data);
+      return response.data;
+    } catch {
+      clearAuthStorage();
+      return { data: null };
+    }
+  }
   return mockRequest('GET', '/api/auth/me', () => {
     if (!localStorage.getItem(AUTH_KEY)) return null;
-    try { return publicUser(requireUser()); } catch { localStorage.removeItem(AUTH_KEY); return null; }
+    try { return publicUser(requireUser()); } catch { clearAuthStorage(); return null; }
   });
 }
 
 export async function logout() {
-  return mockRequest('POST', '/api/auth/logout', () => { localStorage.removeItem(AUTH_KEY); return { logged_out: true }; });
+  if (!USE_MOCK) {
+    try {
+      if (getAuthToken()) await apiClient.post('/auth/logout');
+    } finally {
+      clearAuthStorage();
+    }
+    return { data: { logged_out: true } };
+  }
+  return mockRequest('POST', '/api/auth/logout', () => { clearAuthStorage(); return { logged_out: true }; });
 }
 
 export async function updateProfile(input) {
+  if (!USE_MOCK) {
+    const response = await apiClient.patch('/auth/profile', input);
+    const token = getAuthToken();
+    if (token && response.data?.data) setAuthStorage(token, response.data.data);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('PATCH', '/api/auth/profile', () => {
     const user = requireUser();
     if (!input.name?.trim()) throw new ApiError('Your name is required.');
@@ -55,4 +104,4 @@ export async function updateProfile(input) {
   });
 }
 
-export const authService = { login, register, getCurrentUser, logout, updateProfile };
+export const authService = { login, register, demoLogin, getCurrentUser, logout, updateProfile };

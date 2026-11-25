@@ -1,4 +1,4 @@
-import { ApiError, mockRequest, requireUser } from './api.js';
+import { ApiError, USE_MOCK, apiClient, emitDatabaseChange, mockRequest, requireUser } from './api.js';
 import { getDatabase, isoNow, mutateDatabase, nextId, notify } from '../mock/database.js';
 
 function enrichFaq(db, faq) {
@@ -6,6 +6,7 @@ function enrichFaq(db, faq) {
 }
 
 export async function getFaqs(params = {}) {
+  if (!USE_MOCK) return (await apiClient.get('/faqs', { params })).data;
   return mockRequest('GET', '/api/faqs', () => {
     const user = requireUser();
     const db = getDatabase();
@@ -21,6 +22,13 @@ export async function getFaqs(params = {}) {
 }
 
 export async function saveFaq(input) {
+  if (!USE_MOCK) {
+    const response = input.id
+      ? await apiClient.put(`/admin/faqs/${input.id}`, input)
+      : await apiClient.post('/admin/faqs', input);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest(input.id ? 'PUT' : 'POST', `/api/admin/faqs${input.id ? `/${input.id}` : ''}`, () => {
     const user = requireUser(['admin']);
     if (!['draft', 'suggested', 'approved', 'published'].includes(input.status)) throw new ApiError('Choose a valid FAQ publication status.');
@@ -50,6 +58,11 @@ export async function saveFaq(input) {
 }
 
 export async function deleteFaq(id) {
+  if (!USE_MOCK) {
+    const response = await apiClient.delete(`/admin/faqs/${id}`);
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('DELETE', `/api/admin/faqs/${id}`, () => {
     requireUser(['admin']);
     return mutateDatabase((db) => { db.faqs = db.faqs.filter((f) => f.id !== id); db.faq_translations = db.faq_translations.filter((f) => f.faq_id !== id); return { deleted: true }; });
@@ -57,6 +70,11 @@ export async function deleteFaq(id) {
 }
 
 export async function suggestFaq(ticketId, { question, answer }) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post(`/staff/queries/${ticketId}/suggest-faq`, { question, answer });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', `/api/staff/queries/${ticketId}/suggest-faq`, () => {
     const user = requireUser(['staff', 'admin']);
     if (!question?.trim() || !answer?.trim()) throw new ApiError('Enter a reusable question and an answer.');
@@ -73,6 +91,11 @@ export async function suggestFaq(ticketId, { question, answer }) {
 }
 
 export async function setFaqFeedback(id, value) {
+  if (!USE_MOCK) {
+    const response = await apiClient.post(`/faqs/${id}/feedback`, { value });
+    emitDatabaseChange();
+    return response.data;
+  }
   return mockRequest('POST', `/api/faqs/${id}/feedback`, () => {
     const user = requireUser();
     if (!['up', 'down'].includes(value)) throw new ApiError('Choose helpful or not helpful.');
