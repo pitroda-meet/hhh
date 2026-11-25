@@ -19,7 +19,7 @@ Names: `student`, `staff`, `admin`, `principal`. The last role represents Princi
 - Unique `email`; indexed `role_id` and `active`.
 - `role` is an enriched convenience field in mock/API records.
 - `department_ids` is an array in the mock. In MySQL normalize it to the pivot below.
-- Seed passwords are demo strings; Laravel stores password hashes and never serializes passwords. Mock API responses also omit the password field.
+- Seed passwords are local mock strings; Laravel stores password hashes and never serializes passwords. Mock API responses also omit the password field.
 
 ### `departments`
 
@@ -133,7 +133,7 @@ Nullable `ticket_id` supports knowledge-base notifications. Types include assign
 - Enabled matching rules are evaluated by threshold; the highest reached threshold is applied.
 - Default thresholds are 24h and 48h. Supervisor recipients are users in the Principal / Supervisor role; principal/admin recipients include both role groups.
 
-### Demo-only metadata
+### Mock-only metadata
 
 The mock has `meta.version`, `meta.seeded_at`, `meta.time_offset_hours`, `meta.next_ticket_number`, and persisted per-collection `meta.sequences`. IDs are not reused after deletion, including conversation and confirmation-message IDs. These are not required MySQL tables. Production uses migrations, a server clock, a Laravel scheduled job for escalation, and atomic auto-increment/sequence allocation.
 

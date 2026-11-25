@@ -1,7 +1,6 @@
 import { ApiError, mockRequest, paginate, requireUser } from './api.js';
-import { getAuthStorageKey, dbNow, enrichTicket, getDatabase, isoNow, mutateDatabase, nextId, publicUser, resetDatabase } from '../mock/database.js';
-import { runEscalation } from '../mock/routingEngine.js';
-import { ACTIVE_STATUSES, DEMO_PASSWORD, PRIORITIES, ROLES } from '../utils/constants.js';
+import { dbNow, enrichTicket, getDatabase, isoNow, mutateDatabase, nextId, publicUser } from '../mock/database.js';
+import { ACTIVE_STATUSES, DEFAULT_PASSWORD, PRIORITIES, ROLES } from '../utils/constants.js';
 
 export async function getReferenceData() {
   return mockRequest('GET', '/api/departments', () => {
@@ -42,7 +41,7 @@ export async function saveRecord(entity, input) {
         if (record?.role === 'staff' && db.tickets.some((t) => t.assigned_to === record.id && ACTIVE_STATUSES.includes(t.status) && !department_ids.includes(t.department_id))) throw new ApiError('Reassign active tickets before removing their department from this staff member.');
         fields = { name: input.name.trim(), email: input.email.trim().toLowerCase(), role: input.role, role_id: db.roles.find((r) => r.name === input.role).id, active: Boolean(input.active), department_ids, institute: input.institute || 'Government ITI, Junagadh', phone: input.phone || '', language: record?.language || 'en', trade: input.trade || record?.trade || 'Electrician', year: record?.year || '1st year', enrollment_number: record?.enrollment_number || `GTI-2026-${String(200 + nextId(db.users)).padStart(4, '0')}` };
         if (input.password) { if (input.password.length < 8) throw new ApiError('Password must contain at least 8 characters.'); fields.password = input.password; }
-        if (!record) fields.password = input.password || DEMO_PASSWORD;
+        if (!record) fields.password = input.password || DEFAULT_PASSWORD;
       } else if (entity === 'assignments') {
         if (!record || record.role !== 'staff') throw new ApiError('Choose an existing staff member.');
         const ids = (input.department_ids || []).map(Number);
@@ -132,26 +131,6 @@ export async function getAiLogs(params = {}) {
   });
 }
 
-export async function simulateTime(hours = 24) {
-  return mockRequest('POST', '/api/admin/escalations/simulate', () => {
-    const user = requireUser(['admin', 'principal']);
-    if (!Number.isFinite(Number(hours)) || Number(hours) < 1 || Number(hours) > 168) throw new ApiError('Advance the demo clock by 1–168 hours.');
-    return mutateDatabase((db) => runEscalation(db, Number(hours), user.id));
-  });
-}
-
-export async function resetDemo() {
-  return mockRequest('POST', '/api/demo/reset', () => {
-    let role = null;
-    try { role = requireUser().role; } catch { /* Reset is also available from the demo login screen. */ }
-    const db = resetDatabase();
-    const user = role ? db.users.find((u) => u.role === role) : null;
-    if (user) localStorage.setItem(getAuthStorageKey(), JSON.stringify({ user_id: user.id, token: `demo-${user.id}-${Date.now()}` }));
-    else localStorage.removeItem(getAuthStorageKey());
-    return { user: publicUser(user), reset_at: db.meta.seeded_at };
-  });
-}
-
 export async function setRoutingStrategy(strategy) {
   return mockRequest('PUT', '/api/admin/routing-rules/strategy', () => {
     requireUser(['admin']);
@@ -160,4 +139,4 @@ export async function setRoutingStrategy(strategy) {
   });
 }
 
-export const adminService = { getReferenceData, getManagementData, saveRecord, deleteRecord, getReports, getAiLogs, simulateTime, resetDemo, setRoutingStrategy };
+export const adminService = { getReferenceData, getManagementData, saveRecord, deleteRecord, getReports, getAiLogs, setRoutingStrategy };

@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   if (user) return <Navigate to={`/${user.role}`} replace />;
-  const field = (key) => ({ 'data-pitch': `register-${key}`, value: form[key], onChange: (e) => setForm({ ...form, [key]: e.target.value }) });
+  const field = (key) => ({ value: form[key], onChange: (e) => setForm({ ...form, [key]: e.target.value }) });
   const submit = async (event) => {
     event.preventDefault();
     if (form.password !== form.confirm_password) { setError('The passwords do not match.'); return; }
@@ -31,7 +31,7 @@ export default function RegisterPage() {
       <Grid item xs={12} sm={6}><TextField fullWidth label={t('phone')} type="tel" autoComplete="tel" {...field('phone')} /></Grid>
       <Grid item xs={12} sm={6}><TextField fullWidth select label={t('instituteLabel')} {...field('institute')}>{['Government ITI, Junagadh', 'Government ITI, Rajkot'].map((institute) => <MenuItem key={institute} value={institute}>{institute}</MenuItem>)}</TextField></Grid>
       <Grid item xs={12} sm={6}><TextField fullWidth select label={t('trade')} {...field('trade')}>{['Electrician', 'Fitter', 'Welder', 'Computer Operator & Programming Assistant', 'Mechanic Diesel', 'Draughtsman Civil'].map((trade) => <MenuItem key={trade} value={trade}>{trade}</MenuItem>)}</TextField></Grid>
-      <Grid item xs={12}><TextField fullWidth label={t('enrollment')} {...field('enrollment_number')} helperText="Optional — a demo enrollment number is generated if left empty." /></Grid>
+      <Grid item xs={12}><TextField fullWidth label={t('enrollment')} {...field('enrollment_number')} helperText="Optional — an enrollment number will be generated if left empty." /></Grid>
       <Grid item xs={12} sm={6}><TextField fullWidth required type="password" label={t('password')} autoComplete="new-password" inputProps={{ minLength: 8 }} helperText="At least 8 characters" {...field('password')} /></Grid>
       <Grid item xs={12} sm={6}><TextField fullWidth required type="password" label={t('confirmPassword')} autoComplete="new-password" inputProps={{ minLength: 8 }} {...field('confirm_password')} /></Grid>
       <Grid item xs={12}><Button type="submit" fullWidth variant="contained" size="large" disabled={busy} endIcon={busy ? <CircularProgress size={18} color="inherit" /> : <ArrowForwardRounded />}>{t('createAccount')}</Button></Grid>

@@ -34,18 +34,18 @@ npm run preview
 
 The build is written to `dist/`. For deployment, use an SPA-capable host that serves `index.html` for client-side routes. The default application base is `/`.
 
-## Demo accounts
+## Seeded accounts
 
-The login screen has four one-click demo buttons. The top-bar **⇄ Switch demo role** menu also switches accounts directly, preserving all ticket and conversation data.
+All seeded accounts use the initial password `Demo@2026`. You can sign in on `/login` with any seeded account or register a new student account on `/register`.
 
-| Role | Quick-login user | Email | Password |
+| Role | Primary user | Email | Password |
 |---|---|---|---|
 | Student | Aarav Patel | `student@iti.demo` | `Demo@2026` |
 | Staff / Instructor | Mehul Joshi | `staff@iti.demo` | `Demo@2026` |
 | Administrator | Drashti Desai | `admin@iti.demo` | `Demo@2026` |
 | Principal / Supervisor | Dr. Rupal Shah | `principal@iti.demo` | `Demo@2026` |
 
-There are **four users per role**, sixteen total. All seeded accounts use `Demo@2026`:
+There are **four users per role**, sixteen total:
 
 | Role | Additional accounts |
 |---|---|
@@ -53,12 +53,6 @@ There are **four users per role**, sixteen total. All seeded accounts use `Demo@
 | Staff | Kavita Trivedi (`kavita.trivedi@iti.demo`), Hitesh Makwana (`hitesh.makwana@iti.demo`), Jignesh Parmar (`jignesh.parmar@iti.demo`) |
 | Administrators | Chirag Shah (`chirag.shah@iti.demo`), Bhavika Mehta (`bhavika.mehta@iti.demo`), Parth Vora (`parth.vora@iti.demo`) |
 | Principals / Supervisors | Dr. Sanjay Vyas (`dr.sanjay.vyas@iti.demo`), Minal Bhatt (`minal.bhatt@iti.demo`), Prakash Dholakia (`prakash.dholakia@iti.demo`) |
-
-### Reset for a recording
-
-Press **Ctrl+Shift+D** to open the hidden recording studio, then choose **Reset & start demo**. The confirmation resets locally created data, restores the original seed, resets simulated time, and keeps the current role using its default demo account. The next ticket will again be **ITI-2026-00125**. The same shortcut opens the option to hide the demo-mode badge.
-
-See the timed, copy-ready [five-minute recording script](docs/DEMO_SCRIPT.md).
 
 ## Implemented workflows
 
@@ -88,14 +82,14 @@ See the timed, copy-ready [five-minute recording script](docs/DEMO_SCRIPT.md).
 - FAQ creation/editing, English/Hindi/Gujarati translation editing, draft/approved/published states, and staff-suggestion review.
 - Published answers require all three translations. Approval and publication are distinct states; only **published** FAQs are searchable by the agent.
 - All tickets with reassignment, AI action logs with tool/status/search filters, and error/fallback counters.
-- Editable escalation thresholds and a time-simulation action.
+- Editable escalation thresholds.
 
 ### Principal / Supervisor
 
 - Category donut, department workload bar chart, 30-day created/resolved line chart, and average first-response chart.
 - Staff workload, resolution rate, response time, and student-feedback table.
 - Critical/escalated list with reassignment.
-- CSV report export and escalation simulation.
+- CSV report export.
 
 ## Technology
 
@@ -124,11 +118,9 @@ AI-Powered Student Support & Query Management System/
 ├── public/
 │   └── favicon.svg
 ├── docs/
-│   ├── DATA_MODEL.md
-│   └── DEMO_SCRIPT.md
+│   └── DATA_MODEL.md
 ├── tests/
-│   ├── services.test.js
-│   └── e2e/demo.spec.js
+│   └── services.test.js
 └── src/
     ├── main.jsx
     ├── App.jsx
@@ -138,13 +130,12 @@ AI-Powered Student Support & Query Management System/
     │   ├── AttachmentInput.jsx
     │   ├── Brand.jsx
     │   ├── ChatMessage.jsx
-    │   ├── DemoMode.jsx
     │   ├── ErrorBoundary.jsx
+    │   ├── FeedbackForm.jsx
     │   ├── LanguageSwitcher.jsx
     │   ├── NotificationMenu.jsx
     │   ├── ProtectedRoute.jsx
     │   ├── ReassignDialog.jsx
-    │   ├── SimulateTimeButton.jsx
     │   ├── SupportIllustration.jsx
     │   ├── TicketDetail.jsx
     │   ├── TicketListPage.jsx
@@ -250,11 +241,11 @@ In-memory state + localStorage snapshot
 - Responses use `{ data, message, meta }`. Pagination lives in `data` as `{ items, total, page, page_size, last_page }`.
 - Errors are Axios-shaped: `error.response.status` and `error.response.data.message`.
 - `src/mock/database.js` normalizes related records, commits mutations, and persists them under `sahay.database.v1`.
-- `sahay.auth.v1` stores the current demo session. Language, collapsed-sidebar state, and the demo-mode preference use separate `sahay.*` keys.
-- Mutation events refresh notifications and visible queries. Reloading restores the saved database. Data is scoped to the browser origin; use one browser tab and the role switcher for the recording.
+- `sahay.auth.v1` stores the current session. Language and collapsed-sidebar state use separate `sahay.*` keys.
+- Mutation events refresh notifications and visible queries. Reloading restores the saved database. Data is scoped to the browser origin.
 - Passwords and authentication are mock-only. The planned Laravel implementation replaces these with server-side password hashing and authenticated sessions/tokens.
-- Uploaded files are represented by **name, size, and MIME-type metadata**. Clicking one downloads an explicitly labelled demo text representation; binary files are not stored in localStorage.
-- Date offsets are relative to the seed/reset time, so the dashboard stays useful whenever it is demonstrated.
+- Uploaded files are represented by **name, size, and MIME-type metadata**. Clicking one downloads a text preview representation; binary files are not stored in localStorage.
+- Date offsets are relative to the seed time.
 
 The complete [data model and MySQL mapping](docs/DATA_MODEL.md) documents every entity and relationship.
 
@@ -287,7 +278,6 @@ The complete [data model and MySQL mapping](docs/DATA_MODEL.md) documents every 
 | `adminService.deleteRecord` | `DELETE /api/admin/{resource}/{id}` |
 | `adminService.getReports` | `GET /api/admin/reports` |
 | `adminService.getAiLogs` | `GET /api/admin/ai-action-logs` |
-| `adminService.simulateTime` | `POST /api/admin/escalations/simulate` (demo utility) |
 | `notificationService.getNotifications` | `GET /api/notifications` |
 | `notificationService.markAsRead` | `PATCH /api/notifications/{id}/read`; use `all` for all unread items |
 
@@ -331,7 +321,7 @@ Visible tool calls are `search_faq`, `get_departments`, `create_ticket`, `get_ti
 
 ### Optional Gemini adapter
 
-The deterministic mock engine is the default. To enable local-demo response generation, create `.env.local` using `.env.example` and set `VITE_GEMINI_API_KEY` to your own key. `VITE_GEMINI_MODEL` defaults to `gemini-2.0-flash` and can be set to an available model. Restart Vite after changing the environment.
+The deterministic mock engine is the default. To enable local response generation, create `.env.local` using `.env.example` and set `VITE_GEMINI_API_KEY` to your own key. `VITE_GEMINI_MODEL` defaults to `gemini-2.0-flash` and can be set to an available model. Restart Vite after changing the environment.
 
 - The isolated adapter is `src/services/geminiAdapter.js`.
 - Gemini only rephrases an already retrieved approved answer; ticket creation and permission checks remain deterministic.
@@ -349,7 +339,7 @@ The default global escalation rules are:
 - **24 hours:** supervisor review, delivered to Principal / Supervisor accounts.
 - **48 hours:** principal and administrator review.
 
-The simulation advances a persisted clock offset and applies enabled rules to unresolved tickets. Resolved/closed tickets are excluded. Each escalation adds history and notifies the student, assigned staff, and target reviewers. A previously applied threshold is not repeatedly announced. Reopened tickets start a new escalation window.
+The escalation engine evaluates enabled rules against unresolved tickets. Resolved/closed tickets are excluded. Each escalation adds history and notifies the student, assigned staff, and target reviewers. A previously applied threshold is not repeatedly announced. Reopened tickets start a new escalation window.
 
 Department SLA badges use each department’s configurable response target; escalation rules are an independent institute-wide policy.
 
@@ -361,17 +351,8 @@ npm test
 npm run build
 ```
 
-For browser-level verification:
+Service tests exercise consent, duplicate prevention, account/department access, FAQ publication gating, routing, forwarding, ticket resolution and ratings, notifications, persistence, CRUD reference protection, and escalation behavior.
 
-```bash
-npx playwright install chromium
-npm run test:e2e
-```
-
-Playwright starts its own Vite server on **127.0.0.1:5189** and uses isolated browser storage. Keep that port available. It covers the full multilingual recording flow, responsive navigation and Gujarati FAQs, protected routes, manual attachments/search/CRUD, registration/profile/login/logout, and the hidden demo reset. Browser screenshots are saved under `test-results/`; failed runs include Playwright traces.
-
-Service tests exercise consent, duplicate prevention, account/department access, FAQ publication gating, routing, forwarding, ticket resolution and ratings, notifications, persistence, CRUD reference protection, escalation and reset behavior.
-
-## Demo data context
+## Seed data context
 
 Seed content is an illustrative Gujarat ITI dataset, with Junagadh and Rajkot context, 25 varied tickets, 30 fully translated published FAQs, and two translated staff suggestions awaiting review. The FAQ content deliberately points students to current institute circulars for dates, fees, eligibility and examination-specific requirements.

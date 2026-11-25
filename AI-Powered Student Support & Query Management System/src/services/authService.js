@@ -1,20 +1,14 @@
 import { ApiError, mockRequest, requireUser } from './api.js';
-import { getAuthStorageKey, getDatabase, isoNow, mutateDatabase, nextId, publicUser } from '../mock/database.js';
-import { DEMO_EMAILS, DEMO_PASSWORD } from '../utils/constants.js';
+import { AUTH_KEY, getDatabase, isoNow, mutateDatabase, nextId, publicUser } from '../mock/database.js';
 
 export async function login({ email, password }) {
   return mockRequest('POST', '/api/auth/login', () => {
     const user = getDatabase().users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password && u.active);
-    if (!user) throw new ApiError('The email or password is incorrect. You can also use a demo login below.', 401);
-    const token = `demo-${user.id}-${Date.now()}`;
-    localStorage.setItem(getAuthStorageKey(), JSON.stringify({ user_id: user.id, token }));
+    if (!user) throw new ApiError('The email or password is incorrect.', 401);
+    const token = `sahay-${user.id}-${Date.now()}`;
+    localStorage.setItem(AUTH_KEY, JSON.stringify({ user_id: user.id, token }));
     return { user: publicUser(user), token };
   });
-}
-
-export async function demoLogin(role) {
-  if (!DEMO_EMAILS[role]) throw new ApiError('Choose a valid demo role.');
-  return login({ email: DEMO_EMAILS[role], password: DEMO_PASSWORD });
 }
 
 export async function register(input) {
@@ -31,21 +25,21 @@ export async function register(input) {
       db.users.push(record);
       return publicUser(record);
     });
-    const token = `demo-${user.id}-${Date.now()}`;
-    localStorage.setItem(getAuthStorageKey(), JSON.stringify({ user_id: user.id, token }));
+    const token = `sahay-${user.id}-${Date.now()}`;
+    localStorage.setItem(AUTH_KEY, JSON.stringify({ user_id: user.id, token }));
     return { user, token };
   });
 }
 
 export async function getCurrentUser() {
   return mockRequest('GET', '/api/auth/me', () => {
-    if (!localStorage.getItem(getAuthStorageKey())) return null;
-    try { return publicUser(requireUser()); } catch { localStorage.removeItem(getAuthStorageKey()); return null; }
+    if (!localStorage.getItem(AUTH_KEY)) return null;
+    try { return publicUser(requireUser()); } catch { localStorage.removeItem(AUTH_KEY); return null; }
   });
 }
 
 export async function logout() {
-  return mockRequest('POST', '/api/auth/logout', () => { localStorage.removeItem(getAuthStorageKey()); return { logged_out: true }; });
+  return mockRequest('POST', '/api/auth/logout', () => { localStorage.removeItem(AUTH_KEY); return { logged_out: true }; });
 }
 
 export async function updateProfile(input) {
@@ -61,4 +55,4 @@ export async function updateProfile(input) {
   });
 }
 
-export const authService = { login, demoLogin, register, getCurrentUser, logout, updateProfile };
+export const authService = { login, register, getCurrentUser, logout, updateProfile };

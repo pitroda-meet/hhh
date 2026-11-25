@@ -8,6 +8,8 @@ import { adminService } from '../src/services/adminService.js';
 import { notificationService } from '../src/services/notificationService.js';
 import { AUTH_KEY, DATABASE_KEY, getDatabase, refreshDatabaseFromStorage, resetDatabase } from '../src/mock/database.js';
 import { detectLanguage, classifyIntent, searchApprovedFaq } from '../src/mock/agentEngine.js';
+import { runEscalation } from '../src/mock/routingEngine.js';
+import { DEFAULT_PASSWORD } from '../src/utils/constants.js';
 import en from '../src/i18n/en.json' with { type: 'json' };
 import hi from '../src/i18n/hi.json' with { type: 'json' };
 import gu from '../src/i18n/gu.json' with { type: 'json' };
@@ -21,6 +23,10 @@ class MemoryStorage {
 }
 Object.defineProperty(globalThis, 'localStorage', { value: new MemoryStorage(), configurable: true });
 beforeEach(() => { localStorage.clear(); resetDatabase(); });
+
+function loginAs(role) {
+  return authService.login({ email: `${role}@iti.demo`, password: DEFAULT_PASSWORD });
+}
 
 async function conversation(question, language = 'en') {
   const { data: session } = await chatService.createSession(language);
@@ -81,7 +87,7 @@ test('authentication, student registration and protected service permissions', a
 });
 
 test('Gujarati FAQ answer uses published knowledge, records a tool call and saves feedback', async () => {
-  await authService.demoLogin('student');
+  await loginAs('student');
   const { assistant_message: answer, session } = await conversation('શિષ્યવૃત્તિ માટે કેવી રીતે અરજી કરવી?', 'gu');
   assert.equal(answer.type, 'faq');
   assert.equal(answer.language, 'gu');
@@ -97,7 +103,7 @@ test('Gujarati FAQ answer uses published knowledge, records a tool call and save
 });
 
 test('Hindi issue collects context, requires consent, creates one ticket and tracks it', async () => {
-  await authService.demoLogin('student');
+  await loginAs('student');
   const initial = await conversation('मेरे परीक्षा पंजीकरण में त्रुटि आ रही है', 'hi');
   assert.equal(initial.assistant_message.type, 'confirmation');
   assert.equal(getDatabase().tickets.length, 25);
@@ -121,7 +127,7 @@ test('Hindi issue collects context, requires consent, creates one ticket and tra
 });
 
 test('declining a confirmation never creates a ticket; human support retains the issue', async () => {
-  await authService.demoLogin('student');
+  await loginAs('student');
   const { session, assistant_message } = await conversation('My examination registration is not working');
   await chatService.confirmTicket(session.id, assistant_message.id, false);
   assert.equal(getDatabase().tickets.length, 25);
@@ -133,7 +139,7 @@ test('declining a confirmation never creates a ticket; human support retains the
 });
 
 test('deleting a conversation never reuses an old ticket confirmation', async () => {
-  await authService.demoLogin('student');
+  await loginAs('student');
   const first = await conversation('My examination registration has a duplicate record error');
   const firstTicket = (await chatService.confirmTicket(first.session.id, first.assistant_message.id, true)).data.ticket;
   await chatService.deleteSession(first.session.id);
@@ -149,16 +155,16 @@ test('deleting a conversation never reuses an old ticket confirmation', async ()
 });
 
 test('student → staff → resolved → notification → rating persists end to end', async () => {
-  await authService.demoLogin('student');
+  await loginAs('student');
   const { data: created } = await ticketService.createTicket({ subject: 'Examination registration record error', description: 'My record displays a duplicate error for trainee GTI-2026-0142.', category_id: 2, priority: 'High', attachments: [{ name: 'error.png', size: 1000, type: 'image/png' }] });
   await assert.rejects(() => ticketService.updateTicketStatus(created.id, 'Resolved'), /access/);
-  await authService.demoLogin('staff');
+  await loginAs('staff');
   assert.ok((await ticketService.listStaffQueries({ search: created.ticket_number })).data.items.some((t) => t.id === created.id));
   await assert.rejects(() => ticketService.updateTicketStatus(created.id, 'Resolved'), /resolution reply/);
   await ticketService.replyToTicket(created.id, { message: 'Your duplicate registration has been verified and corrected. Please download the updated acknowledgement.' });
   assert.equal((await ticketService.getTicket(created.id)).data.status, 'In Progress');
   await ticketService.updateTicketStatus(created.id, 'Resolved');
-  await authService.demoLogin('student');
+  await loginAs('student');
   const notes = (await notificationService.getNotifications()).data.items;
   const resolvedNotification = notes.find((n) => n.ticket_id === created.id && n.type === 'resolved');
   assert.ok(resolvedNotification && !resolvedNotification.read_at);
@@ -175,12 +181,12 @@ test('student → staff → resolved → notification → rating persists end to
 });
 
 test('routing uses least active workload, and forwarding enforces department membership', async () => {
-  await authService.demoLogin('admin');
+  await loginAs('admin');
   const { data: extraStaff } = await adminService.saveRecord('users', { name: 'Ravi Vyas', email: 'ravi@demo.test', role: 'staff', active: true, department_ids: [2] });
-  await authService.demoLogin('student');
+  await loginAs('student');
   const { data: ticket } = await ticketService.createTicket({ subject: 'Help with exam registration', description: 'Please check the incorrect registration details on my exam form.', category_id: 2 });
   assert.equal(ticket.assigned_to, extraStaff.id);
-  await authService.demoLogin('staff');
+  await loginAs('staff');
   await assert.rejects(() => ticketService.forwardTicket(ticket.id, { department_id: 5, staff_id: 5, note: 'Wrong staff' }), /not assigned/);
   const { data: forwarded } = await ticketService.forwardTicket(ticket.id, { department_id: 5, note: 'The issue requires portal access review.' });
   assert.equal(forwarded.department_id, 5);
@@ -189,15 +195,15 @@ test('routing uses least active workload, and forwarding enforces department mem
 });
 
 test('staff FAQ suggestions require all translations before approval and publication', async () => {
-  await authService.demoLogin('staff');
+  await loginAs('staff');
   const { data: suggestion } = await faqService.suggestFaq(103, { question: 'How can I verify my examination registration record?', answer: 'Ask the Examination Cell to verify your trainee record and share the acknowledgement.' });
-  await authService.demoLogin('admin');
+  await loginAs('admin');
   await assert.rejects(() => faqService.saveFaq({ ...suggestion, status: 'published' }), /HI.*required/);
   const suggested = (await faqService.getFaqs({ manage: true, status: 'suggested' })).data.find((f) => f.id === 31);
   await faqService.saveFaq({ ...suggested, status: 'approved' });
   assert.equal(searchApprovedFaq(getDatabase(), 'My exam registration shows a duplicate record error', 'en', 'Examination'), null, 'approved but unpublished FAQs are not retrieved');
   await faqService.saveFaq({ ...suggested, status: 'published' });
-  await authService.demoLogin('student');
+  await loginAs('student');
   const response = await conversation('My exam registration shows a duplicate record error');
   assert.equal(response.assistant_message.type, 'faq');
   assert.equal(response.assistant_message.faq_id, 31);
@@ -205,7 +211,7 @@ test('staff FAQ suggestions require all translations before approval and publica
 });
 
 test('admin CRUD protects references and supports new departments, mappings, users and rules', async () => {
-  await authService.demoLogin('admin');
+  await loginAs('admin');
   const { data: department } = await adminService.saveRecord('departments', { name: 'Placement', code: 'PLAC', description: 'Apprenticeship support', sla_hours: 24, active: true });
   const { data: category } = await adminService.saveRecord('categories', { name: 'Industry placement', department_id: department.id, active: true });
   await assert.rejects(() => adminService.deleteRecord('departments', department.id), /linked/);
@@ -219,11 +225,11 @@ test('admin CRUD protects references and supports new departments, mappings, use
   await assert.rejects(() => adminService.deleteRecord('users', 9), /linked/);
 });
 
-test('clock simulation escalates overdue tickets, preserves resolved tickets and updates reports', async () => {
-  await authService.demoLogin('principal');
+test('escalation engine escalates overdue tickets, preserves resolved tickets and updates reports', async () => {
+  const { data: auth } = await loginAs('principal');
   const before = (await adminService.getReports()).data;
   const resolvedIds = getDatabase().tickets.filter((t) => ['Resolved', 'Closed'].includes(t.status)).map((t) => t.id);
-  const { data: simulated } = await adminService.simulateTime(24);
+  const simulated = runEscalation(getDatabase(), 24, auth.user.id);
   assert.ok(simulated.escalated_count > 0);
   assert.equal(simulated.time_offset_hours, 24);
   for (const id of resolvedIds) assert.ok(['Resolved', 'Closed'].includes(getDatabase().tickets.find((t) => t.id === id).status));
@@ -232,17 +238,16 @@ test('clock simulation escalates overdue tickets, preserves resolved tickets and
   assert.equal(after.trend.length, 30);
   assert.equal(after.departments.reduce((sum, d) => sum + d.total, 0), after.summary.total);
   assert.ok((await notificationService.getNotifications()).data.items.some((n) => n.type === 'escalated' && simulated.ticket_ids.includes(n.ticket_id)));
-  const { data: second } = await adminService.simulateTime(24);
+  const second = runEscalation(getDatabase(), 24, auth.user.id);
   assert.equal(second.time_offset_hours, 48);
-  await authService.demoLogin('admin');
+  await loginAs('admin');
   assert.ok((await notificationService.getNotifications()).data.items.some((n) => n.type === 'escalated'));
 });
 
-test('reset removes demo mutations and restarts ticket numbering while retaining the role', async () => {
-  await authService.demoLogin('student');
+test('resetDatabase restores clean initial state and ticket numbering', async () => {
+  await loginAs('student');
   await ticketService.createTicket({ subject: 'A new general support question', description: 'Please help me with an institute support request.', category_id: 8 });
-  const { data } = await adminService.resetDemo();
-  assert.equal(data.user.role, 'student');
+  resetDatabase();
   assert.equal(getDatabase().tickets.length, 25);
   assert.equal(getDatabase().meta.next_ticket_number, 125);
   assert.equal(getDatabase().chat_sessions.length, 0);

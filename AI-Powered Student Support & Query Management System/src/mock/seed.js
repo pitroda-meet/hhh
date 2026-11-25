@@ -1,5 +1,5 @@
 import { buildFaqSeed } from './faqSeed.js';
-import { DEMO_PASSWORD } from '../utils/constants.js';
+import { DEFAULT_PASSWORD } from '../utils/constants.js';
 
 export const DATABASE_VERSION = 1;
 
@@ -19,7 +19,7 @@ export function createSeed() {
   const names = ['Aarav Patel', 'Nidhi Shah', 'Dhruv Solanki', 'Kavya Vyas', 'Mehul Joshi', 'Kavita Trivedi', 'Hitesh Makwana', 'Jignesh Parmar', 'Drashti Desai', 'Chirag Shah', 'Bhavika Mehta', 'Parth Vora', 'Dr. Rupal Shah', 'Dr. Sanjay Vyas', 'Minal Bhatt', 'Prakash Dholakia'];
   const users = names.map((name, index) => {
     const role = roles[Math.floor(index / 4)];
-    return { id: index + 1, name, email: index % 4 === 0 ? `${role.name}@iti.demo` : `${name.toLowerCase().replace(/[^a-z ]/g, '').replace(/ /g, '.')}@iti.demo`, password: DEMO_PASSWORD, role_id: role.id, role: role.name, department_ids: role.name === 'staff' ? [[2, 4], [1, 3], [5], [6]][index - 4] : [], phone: `98765${String(43210 + index).slice(-5)}`, institute: index === 2 || index === 3 ? 'Government ITI, Rajkot' : 'Government ITI, Junagadh', trade: ['Electrician', 'Computer Operator & Programming Assistant', 'Fitter', 'Welder'][index % 4], year: '2nd year', enrollment_number: `GTI-2026-${String(142 + index).padStart(4, '0')}`, language: 'en', active: true, created_at: ago(24 * 65) };
+    return { id: index + 1, name, email: index % 4 === 0 ? `${role.name}@iti.demo` : `${name.toLowerCase().replace(/[^a-z ]/g, '').replace(/ /g, '.')}@iti.demo`, password: DEFAULT_PASSWORD, role_id: role.id, role: role.name, department_ids: role.name === 'staff' ? [[2, 4], [1, 3], [5], [6]][index - 4] : [], phone: `98765${String(43210 + index).slice(-5)}`, institute: index === 2 || index === 3 ? 'Government ITI, Rajkot' : 'Government ITI, Junagadh', trade: ['Electrician', 'Computer Operator & Programming Assistant', 'Fitter', 'Welder'][index % 4], year: '2nd year', enrollment_number: `GTI-2026-${String(142 + index).padStart(4, '0')}`, language: 'en', active: true, created_at: ago(24 * 65) };
   });
   const ticketSpecs = [
     ['Scholarship application verification', 'My Digital Gujarat application DGJ-2026-1842 is awaiting institute verification. I have uploaded the income certificate and bank passbook.', 3, 'In Progress', 'Medium', 1, 20],

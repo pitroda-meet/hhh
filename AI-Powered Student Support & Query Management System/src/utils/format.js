@@ -17,11 +17,11 @@ export const compactNumber = (value) => new Intl.NumberFormat('en-IN', { notatio
 export const errorMessage = (error) => error?.response?.data?.message || error?.message || 'Something went wrong. Please try again.';
 export const attachmentMetadata = (files) => Array.from(files || []).map((file) => ({ name: file.name, size: file.size, type: file.type || 'application/octet-stream', mock: true }));
 export function downloadMockAttachment(attachment, ticketNumber) {
-  const blob = new Blob([`SAHAY · DEMO ATTACHMENT\n\nTicket: ${ticketNumber}\nOriginal file: ${attachment.name}\nSize: ${attachment.size || 0} bytes\n\nThis prototype stores file metadata only. A production attachment would be served from Laravel storage.\n`], { type: 'text/plain' });
+  const blob = new Blob([`SAHAY · ATTACHMENT PREVIEW\n\nTicket: ${ticketNumber}\nOriginal file: ${attachment.name}\nSize: ${attachment.size || 0} bytes\n\nThis client stores file metadata only. A production attachment would be served from Laravel storage.\n`], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `${attachment.name}.demo.txt`;
+  anchor.download = `${attachment.name}.txt`;
   anchor.click();
   URL.revokeObjectURL(url);
 }

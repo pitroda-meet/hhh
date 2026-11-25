@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { getAuthStorageKey, getDatabase, getDatabaseEpoch } from '../mock/database.js';
+import { AUTH_KEY, getDatabase, getDatabaseEpoch } from '../mock/database.js';
 
 // Replace mockRequest calls with apiClient calls when the Laravel API is ready.
 // Axios is intentionally confined to the service layer.
 export const apiClient = axios.create({ baseURL: import.meta.env?.VITE_API_BASE_URL || '/api', timeout: 15000, headers: { Accept: 'application/json' } });
 apiClient.interceptors.request.use((config) => {
   let session;
-  try { session = JSON.parse(localStorage.getItem(getAuthStorageKey()) || 'null'); } catch { session = null; }
+  try { session = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch { session = null; }
   if (session?.token) config.headers.Authorization = `Bearer ${session.token}`;
   return config;
 });
@@ -21,7 +21,7 @@ export class ApiError extends Error {
 
 export function requireUser(roles) {
   let session;
-  try { session = JSON.parse(localStorage.getItem(getAuthStorageKey()) || 'null'); } catch { session = null; }
+  try { session = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch { session = null; }
   const user = getDatabase().users.find((u) => u.id === session?.user_id && u.active);
   if (!user) throw new ApiError('Please sign in to continue.', 401);
   if (roles && !roles.includes(user.role)) throw new ApiError('You do not have access to this action.', 403);
@@ -44,7 +44,7 @@ export async function mockRequest(method, route, handler) {
 
 export function assertRequestEpoch(epoch) {
   if (epoch !== getDatabaseEpoch()) {
-    const error = new Error('The previous demo request was cancelled.');
+    const error = new Error('The previous request was cancelled.');
     error.name = 'AbortError';
     throw error;
   }

@@ -92,7 +92,6 @@ function TicketListContent({ searchParams }) {
   return (
     <>
       <PageHeader
-        ready={!request.loading && !refs.loading}
         title={t(student ? "myQueries" : staff ? "ticketInbox" : criticalOnly ? 'criticalWatchlist' : "allTickets")}
         subtitle={t(student ? "queriesSubtitle" : "inboxSubtitle")}
         action={
@@ -117,7 +116,6 @@ function TicketListContent({ searchParams }) {
             flexWrap="wrap"
           >
             <TextField
-              data-pitch="ticket-search"
               value={search}
               onChange={filter(setSearch)}
               placeholder={t("searchTickets")}
@@ -132,7 +130,6 @@ function TicketListContent({ searchParams }) {
               sx={{ flex: 1, minWidth: 220 }}
             />
             <TextField
-              data-pitch="ticket-status-filter"
               select
               label={t("status")}
               value={status}
@@ -148,7 +145,6 @@ function TicketListContent({ searchParams }) {
               ))}
             </TextField>
             <TextField
-              data-pitch="ticket-category-filter"
               select
               label={t("category")}
               value={category}
@@ -178,10 +174,10 @@ function TicketListContent({ searchParams }) {
                 ))}
               </TextField>
             )}
-            {staff && <TextField data-pitch="ticket-sort" select label={t('sortBy')} value={sort} onChange={filter(setSort)} sx={{ minWidth: 160 }}><MenuItem value="newest">{t('newestFirst')}</MenuItem><MenuItem value="priority">{t('priorityFirst')}</MenuItem></TextField>}
+            {staff && <TextField select label={t('sortBy')} value={sort} onChange={filter(setSort)} sx={{ minWidth: 160 }}><MenuItem value="newest">{t('newestFirst')}</MenuItem><MenuItem value="priority">{t('priorityFirst')}</MenuItem></TextField>}
           </Stack>
           {staff && <FormControlLabel control={<Checkbox size="small" checked={unassigned} onChange={(event) => { setUnassigned(event.target.checked); setPage(0); }} />} label={t('unassignedOnly')} />}
-          {user.role === 'principal' && <FormControlLabel control={<Checkbox data-pitch="critical-filter" size="small" checked={criticalOnly} onChange={(event) => { setCriticalOnly(event.target.checked); setPage(0); }} />} label={t('criticalWatchlist')} />}
+          {user.role === 'principal' && <FormControlLabel control={<Checkbox size="small" checked={criticalOnly} onChange={(event) => { setCriticalOnly(event.target.checked); setPage(0); }} />} label={t('criticalWatchlist')} />}
           <Stack
             direction="row"
             justifyContent="space-between"

@@ -1,4 +1,4 @@
-import { AutoAwesomeOutlined, DashboardOutlined, FactCheckOutlined, ForumOutlined, GroupsOutlined, HelpOutlineRounded, HubOutlined, InsightsOutlined, ManageAccountsOutlined, MenuBookOutlined, PersonOutlineRounded, PieChartOutlineRounded, RuleOutlined, SchemaOutlined, SchoolOutlined, SettingsSuggestOutlined, SupportAgentRounded } from '@mui/icons-material';
+import { AutoAwesomeOutlined, DashboardOutlined, FactCheckOutlined, ForumOutlined, GroupsOutlined, HelpOutlineRounded, HubOutlined, ManageAccountsOutlined, MenuBookOutlined, PersonOutlineRounded, PieChartOutlineRounded, RuleOutlined, SchemaOutlined, SettingsSuggestOutlined } from '@mui/icons-material';
 
 export const navigation = {
   student: [
@@ -32,4 +32,3 @@ export const navigation = {
     { key: 'profile', path: '/principal/profile', icon: PersonOutlineRounded, section: 'account' },
   ],
 };
-export const roleIcons = { student: SchoolOutlined, staff: SupportAgentRounded, admin: ManageAccountsOutlined, principal: InsightsOutlined };

@@ -70,8 +70,8 @@ export default function ChatPage() {
   const detectedLanguage = LANGUAGES.find((item) => item.code === (session?.language || language));
   const hasMessages = session?.messages.some((message) => message.role === 'user') || optimistic;
   return <>
-    <PageHeader ready={!loadingSession && !refs.loading && !sessions.loading} title={t('chatTitle')} subtitle={t('chatSubtitle')} action={<Chip icon={<LockOutlined sx={{ fontSize: '12px !important' }} />} label={t('conversationSaved')} variant="outlined" sx={{ display: { xs: 'none', md: 'flex' }, borderColor: '#dde7ef', color: '#8396a4', fontSize: '.62rem' }} />} />
-    <Card data-pitch="chat-shell" sx={{ display: 'flex', height: { xs: 'calc(100dvh - 236px)', md: 'calc(100vh - 220px)' }, minHeight: 570, maxHeight: 920, position: 'relative' }}>
+    <PageHeader title={t('chatTitle')} subtitle={t('chatSubtitle')} action={<Chip icon={<LockOutlined sx={{ fontSize: '12px !important' }} />} label={t('conversationSaved')} variant="outlined" sx={{ display: { xs: 'none', md: 'flex' }, borderColor: '#dde7ef', color: '#8396a4', fontSize: '.62rem' }} />} />
+    <Card sx={{ display: 'flex', height: { xs: 'calc(100dvh - 236px)', md: 'calc(100vh - 220px)' }, minHeight: 570, maxHeight: 920, position: 'relative' }}>
       <Box sx={{ width: { xs: 220, xl: 245 }, flexShrink: 0, bgcolor: '#fafcfd', borderRight: '1px solid #e6edf3', display: { xs: historyOpen ? 'flex' : 'none', lg: 'flex' }, flexDirection: 'column', position: { xs: 'absolute', lg: 'relative' }, inset: { xs: '0 auto 0 0', lg: 'auto' }, zIndex: 3, boxShadow: { xs: historyOpen ? '10px 0 30px #0b39541c' : 'none', lg: 'none' } }}>
         <Box sx={{ p: 2.2 }}><Button fullWidth variant="outlined" startIcon={<AddRounded sx={{ fontSize: 17 }} />} onClick={newConversation} disabled={sending} sx={{ bgcolor: '#fff', py: 1, fontSize: '.73rem', borderColor: '#dce6ed' }}>{t('newChat')}</Button></Box>
         <Typography variant="overline" sx={{ px: 2.5, color: '#9aaab5', fontSize: '.57rem', letterSpacing: 1 }}>{t('chatHistory')}</Typography>

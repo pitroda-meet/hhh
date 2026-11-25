@@ -21,5 +21,4 @@ export const PRIORITY_STYLES = {
   High: { color: '#c37316', background: '#fff4e4' },
   Critical: { color: '#c44545', background: '#fff0ee' },
 };
-export const DEMO_PASSWORD = 'Demo@2026';
-export const DEMO_EMAILS = { student: 'student@iti.demo', staff: 'staff@iti.demo', admin: 'admin@iti.demo', principal: 'principal@iti.demo' };
+export const DEFAULT_PASSWORD = 'Demo@2026';

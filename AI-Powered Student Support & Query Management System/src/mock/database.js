@@ -3,21 +3,9 @@ import { createSeed, DATABASE_VERSION } from './seed.js';
 export const DATABASE_KEY = 'sahay.database.v1';
 export const AUTH_KEY = 'sahay.auth.v1';
 let database;
-let namespace = 'main';
 let databaseEpoch = 0;
 
-export function getDatabaseStorageKey() { return namespace === 'presentation' ? `${DATABASE_KEY}.pitch` : DATABASE_KEY; }
-export function getAuthStorageKey() { return namespace === 'presentation' ? `${AUTH_KEY}.pitch` : AUTH_KEY; }
 export function getDatabaseEpoch() { return databaseEpoch; }
-export function isPresentationDatabase() { return namespace === 'presentation'; }
-
-export function switchDatabaseNamespace(next) {
-  if (!['main', 'presentation'].includes(next)) throw new Error('Unknown database namespace.');
-  namespace = next;
-  database = undefined;
-  databaseEpoch += 1;
-  return getDatabase();
-}
 
 function upgradeDatabase(db) {
   let changed = false;
@@ -49,16 +37,16 @@ function broadcast() {
 
 function persist() {
   try {
-    localStorage.setItem(getDatabaseStorageKey(), JSON.stringify(database));
+    localStorage.setItem(DATABASE_KEY, JSON.stringify(database));
   } catch {
-    throw new Error('Browser storage is full or unavailable. Enable local storage, or reset the demo data.');
+    throw new Error('Browser storage is full or unavailable. Enable local storage or clear site data.');
   }
 }
 
 export function getDatabase() {
   if (!database) {
     let stored;
-    try { stored = JSON.parse(localStorage.getItem(getDatabaseStorageKey()) || 'null'); } catch { stored = null; }
+    try { stored = JSON.parse(localStorage.getItem(DATABASE_KEY) || 'null'); } catch { stored = null; }
     database = stored?.meta?.version === DATABASE_VERSION && Array.isArray(stored.users) ? stored : createSeed();
     const upgraded = upgradeDatabase(database);
     const initialized = initializeSequences(database);

@@ -16,9 +16,6 @@ dist-ssr
 !.env.example
 playwright-report
 test-results
-video-output/
-.venv-pitch/
-.pitch_audio_cache/
 
 # Editor directories and files
 .vscode/*

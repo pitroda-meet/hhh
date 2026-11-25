@@ -4,12 +4,10 @@ import Brand from '../components/Brand.jsx';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 import SupportIllustration from '../components/SupportIllustration.jsx';
 import { useApp } from '../context/appContext.js';
-import { useLocation } from 'react-router-dom';
 
 export default function AuthLayout({ children, wide = false }) {
   const { t } = useApp();
-  const { pathname } = useLocation();
-  return <Box data-pitch-page={pathname} data-pitch-ready="true" sx={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '44% 56%' }, bgcolor: '#fff' }}>
+  return <Box sx={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '44% 56%' }, bgcolor: '#fff' }}>
     <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', bgcolor: '#0b3954', color: '#fff', px: { md: 5, xl: 8 }, py: 5, position: 'relative', overflow: 'hidden' }}>
       <Box sx={{ position: 'absolute', inset: 0, opacity: .12, backgroundImage: 'radial-gradient(#a4cddd 1px, transparent 1px)', backgroundSize: '28px 28px', maskImage: 'linear-gradient(150deg, transparent 25%, black)' }} />
       <Box sx={{ position: 'absolute', width: 640, height: 640, border: '1px solid #ffffff0c', borderRadius: '50%', bottom: -320, left: -110 }} />

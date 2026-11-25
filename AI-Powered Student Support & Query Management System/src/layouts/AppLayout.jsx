@@ -1,41 +1,33 @@
 import { useEffect, useState } from 'react';
-import { AppBar, Avatar, Box, Button, Chip, Divider, Drawer, IconButton, InputBase, List, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Toolbar, Tooltip, Typography, useMediaQuery } from '@mui/material';
-import { ArrowForwardRounded, AutoAwesomeRounded, ChevronLeftRounded, ChevronRightRounded, KeyboardArrowDownRounded, LogoutRounded, MenuRounded, PersonOutlineRounded, PlaceOutlined, SearchRounded, SwapHorizRounded } from '@mui/icons-material';
+import { AppBar, Avatar, Box, Button, Divider, Drawer, IconButton, InputBase, List, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Toolbar, Tooltip, Typography, useMediaQuery } from '@mui/material';
+import { ArrowForwardRounded, AutoAwesomeRounded, ChevronLeftRounded, ChevronRightRounded, KeyboardArrowDownRounded, LogoutRounded, MenuRounded, PersonOutlineRounded, PlaceOutlined, SearchRounded } from '@mui/icons-material';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { useApp } from '../context/appContext.js';
 import { errorMessage, initials } from '../utils/format.js';
-import { navigation, roleIcons } from './navigation.js';
+import { navigation } from './navigation.js';
 import Brand from '../components/Brand.jsx';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 import NotificationMenu from '../components/NotificationMenu.jsx';
 
 export default function AppLayout({ role }) {
-  const { user, t, logout, demoLogin, toast, presentationActive } = useApp();
+  const { user, t, logout, toast } = useApp();
   const theme = useTheme();
   const desktop = useMediaQuery(theme.breakpoints.up('lg'), { noSsr: true });
   const compactHeader = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sahay.sidebar.collapsed') === 'true');
   const [mobileOpen, setMobileOpen] = useState(null);
   const [profileAnchor, setProfileAnchor] = useState(null);
-  const [switchAnchor, setSwitchAnchor] = useState(null);
-  const [switching, setSwitching] = useState(false);
   const [search, setSearch] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  const slim = collapsed && desktop && !presentationActive;
+  const slim = collapsed && desktop;
   const width = slim ? 82 : 240;
   const nav = navigation[role];
   const current = [...nav].reverse().find((item) => item.end ? location.pathname === item.path : location.pathname.startsWith(item.path));
   const isChat = location.pathname === '/student/chat';
   useEffect(() => { window.scrollTo({ top: 0 }); }, [location.pathname]);
   const toggleSidebar = () => { if (desktop) { localStorage.setItem('sahay.sidebar.collapsed', String(!collapsed)); setCollapsed(!collapsed); } else setMobileOpen(mobileOpen === location.pathname ? null : location.pathname); };
-  const changeRole = async (nextRole) => {
-    setSwitching(true);
-    try { await demoLogin(nextRole); setSwitchAnchor(null); setProfileAnchor(null); navigate(`/${nextRole}`); toast(`${t(nextRole)} demo is ready.`); }
-    catch (error) { toast(errorMessage(error), 'error'); }
-    finally { setSwitching(false); }
-  };
   const signOut = async () => { try { await logout(); navigate('/login'); } catch (error) { toast(errorMessage(error), 'error'); } };
   const submitSearch = (event) => { event.preventDefault(); const base = role === 'student' ? '/student/queries' : role === 'staff' ? '/staff/inbox' : `/${role}/tickets`; navigate(`${base}?search=${encodeURIComponent(search)}`); setSearch(''); };
 
@@ -65,13 +57,11 @@ export default function AppLayout({ role }) {
         <Box sx={{ flex: 1 }} />
         <Box component="form" onSubmit={submitSearch} sx={{ display: { xs: 'none', xl: 'flex' }, alignItems: 'center', gap: .8, mr: 1 }}><SearchRounded sx={{ fontSize: 19, color: '#a1b0bd' }} /><InputBase value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('searchPlaceholder')} inputProps={{ 'aria-label': t('search') }} sx={{ fontSize: 11.5, width: 200 }} /></Box>
         <LanguageSwitcher compact={compactHeader} /><NotificationMenu /><Divider orientation="vertical" flexItem sx={{ my: 2.7, mx: .1 }} />
-        <Tooltip title={t('switchRole')}><IconButton onClick={(event) => setSwitchAnchor(event.currentTarget)} aria-label={t('switchRole')} data-testid="switch-role" sx={{ color: '#6b8091', display: { xs: 'none', sm: 'flex' } }}><SwapHorizRounded sx={{ fontSize: 21 }} /></IconButton></Tooltip>
         <Button onClick={(event) => setProfileAnchor(event.currentTarget)} aria-label="Profile menu" sx={{ minWidth: 0, px: .4, gap: 1.1 }}><Avatar sx={{ width: 34, height: 34, bgcolor: '#f1e4d6', color: '#8b6948', fontSize: 11, fontWeight: 700 }}>{initials(user.name)}</Avatar><Box sx={{ textAlign: 'left', display: { xs: 'none', sm: 'block' } }}><Typography variant="subtitle2" sx={{ fontSize: '.74rem', lineHeight: 1.4 }}>{user.name.split(' ').slice(0, user.name.startsWith('Dr.') ? 2 : 1).join(' ')}</Typography><Typography variant="caption" color="text.secondary" sx={{ fontSize: '.62rem' }}>{t(role)}</Typography></Box><KeyboardArrowDownRounded sx={{ fontSize: 15, color: '#8d9eaa', display: { xs: 'none', sm: 'block' } }} /></Button>
       </Toolbar></AppBar>
       <Box component="main" id="main-content" tabIndex={-1} sx={{ p: { xs: 2, sm: 3, lg: '28px 32px' }, maxWidth: 1600, mx: 'auto', minHeight: 'calc(100vh - 130px)', outline: 'none !important' }}><Box key={location.pathname} className="page-enter"><Outlet /></Box></Box>
-      {!isChat && <Stack component="footer" direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1} sx={{ px: { xs: 2, sm: 4 }, py: 2.5, color: '#91a0ad' }}><Typography variant="caption" sx={{ fontSize: '.65rem' }}>© 2026 Sahay. {t('footer')}</Typography><Stack direction="row" alignItems="center" spacing={.6}><PlaceOutlined sx={{ fontSize: 12 }} /><Typography variant="caption" sx={{ fontSize: '.65rem' }}>{t('institute')} <Box component="span" sx={{ mx: 1 }}>·</Box> {t('prototype')}</Typography></Stack></Stack>}
+      {!isChat && <Stack component="footer" direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1} sx={{ px: { xs: 2, sm: 4 }, py: 2.5, color: '#91a0ad' }}><Typography variant="caption" sx={{ fontSize: '.65rem' }}>© 2026 Sahay. {t('footer')}</Typography><Stack direction="row" alignItems="center" spacing={.6}><PlaceOutlined sx={{ fontSize: 12 }} /><Typography variant="caption" sx={{ fontSize: '.65rem' }}>{t('institute')}</Typography></Stack></Stack>}
     </Box>
-    <Menu anchorEl={profileAnchor} open={Boolean(profileAnchor)} onClose={() => setProfileAnchor(null)} PaperProps={{ sx: { minWidth: 220, mt: 1 } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}><Box sx={{ px: 2, py: 1 }}><Typography variant="subtitle2">{user.name}</Typography><Typography variant="caption" color="text.secondary">{user.email}</Typography></Box><Divider /><MenuItem onClick={() => { navigate(`/${role}/profile`); setProfileAnchor(null); }}><PersonOutlineRounded fontSize="small" sx={{ mr: 1 }} />{t('profile')}</MenuItem><MenuItem onClick={(e) => { setSwitchAnchor(e.currentTarget); }}><SwapHorizRounded fontSize="small" sx={{ mr: 1 }} />{t('switchRole')}</MenuItem><MenuItem onClick={signOut} sx={{ color: 'error.main' }}><LogoutRounded fontSize="small" sx={{ mr: 1 }} />{t('logout')}</MenuItem></Menu>
-    <Menu anchorEl={switchAnchor} open={Boolean(switchAnchor)} onClose={() => setSwitchAnchor(null)} PaperProps={{ sx: { minWidth: 240, mt: 1 } }}><Typography variant="overline" color="text.secondary" sx={{ px: 2, py: 1, display: 'block' }}>{t('switchRole')}</Typography>{Object.keys(roleIcons).map((nextRole) => { const Icon = roleIcons[nextRole]; return <MenuItem key={nextRole} disabled={switching} selected={role === nextRole} onClick={() => changeRole(nextRole)} data-testid={`switch-${nextRole}`}><Icon sx={{ fontSize: 19, mr: 1.5, color: 'text.secondary' }} />{t(nextRole)}{role === nextRole && <Chip label="✓" size="small" sx={{ ml: 'auto', height: 20 }} />}</MenuItem>; })}</Menu>
+    <Menu anchorEl={profileAnchor} open={Boolean(profileAnchor)} onClose={() => setProfileAnchor(null)} PaperProps={{ sx: { minWidth: 220, mt: 1 } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}><Box sx={{ px: 2, py: 1 }}><Typography variant="subtitle2">{user.name}</Typography><Typography variant="caption" color="text.secondary">{user.email}</Typography></Box><Divider /><MenuItem onClick={() => { navigate(`/${role}/profile`); setProfileAnchor(null); }}><PersonOutlineRounded fontSize="small" sx={{ mr: 1 }} />{t('profile')}</MenuItem><MenuItem onClick={signOut} sx={{ color: 'error.main' }}><LogoutRounded fontSize="small" sx={{ mr: 1 }} />{t('logout')}</MenuItem></Menu>
   </Box>;
 }
