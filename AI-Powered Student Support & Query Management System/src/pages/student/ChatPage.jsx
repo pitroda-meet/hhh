@@ -7,6 +7,7 @@ import { useAsync } from '../../hooks/useAsync.js';
 import { chatService } from '../../services/chatService.js';
 import { adminService } from '../../services/adminService.js';
 import { errorMessage, formatDate } from '../../utils/format.js';
+import { validateChatMessage } from '../../utils/validation.js';
 import { LANGUAGES } from '../../utils/constants.js';
 import { BrandMark } from '../../components/Brand.jsx';
 import ChatMessage from '../../components/ChatMessage.jsx';
@@ -36,8 +37,13 @@ export default function ChatPage() {
 
   const updateConversation = (data) => { setSession(data); setParams({ session: data.id }, { replace: true }); };
   const send = async (text = input, action) => {
+    if (busyRef.current || loadingSession) return;
+    const validationErr = validateChatMessage(text);
+    if (validationErr) {
+      toast(validationErr, 'warning');
+      return;
+    }
     const message = text.trim();
-    if (!message || busyRef.current || loadingSession) return;
     busyRef.current = true; setSending(true); setError(null); setInput('');
     setOptimistic({ id: 'pending-user', role: 'user', content: message, language, created_at: new Date().toISOString() });
     try {
@@ -45,22 +51,35 @@ export default function ChatPage() {
       if (!activeSession) { const result = await chatService.createSession(language); activeSession = result.data; setSession(activeSession); }
       const { data } = await chatService.sendMessage({ session_id: activeSession.id, message, action });
       updateConversation(data.session);
-    } catch (reason) { setError(errorMessage(reason)); setInput(message); }
+    } catch (reason) {
+      const msg = errorMessage(reason);
+      setError(msg);
+      setInput(message);
+      if (!reason?._toasted) toast(msg, 'error');
+    }
     finally { setOptimistic(null); setSending(false); busyRef.current = false; inputRef.current?.focus(); }
   };
   const confirmTicket = async (messageId, confirmed) => {
     if (busyRef.current) return;
     busyRef.current = true; setSending(true); setError(null);
-    try { const { data } = await chatService.confirmTicket(session.id, messageId, confirmed); updateConversation(data.session); if (data.ticket) toast(`${data.ticket.ticket_number} · ${data.ticket.assigned_staff?.name || data.ticket.department.name}`); }
-    catch (reason) { setError(errorMessage(reason)); }
+    try {
+      const { data } = await chatService.confirmTicket(session.id, messageId, confirmed);
+      updateConversation(data.session);
+      if (data.ticket) toast(`${data.ticket.ticket_number} · ${data.ticket.assigned_staff?.name || data.ticket.department.name}`, 'success');
+      else toast('Ticket creation cancelled. Conversation continues.', 'info');
+    } catch (reason) {
+      const msg = errorMessage(reason);
+      setError(msg);
+      if (!reason?._toasted) toast(msg, 'error');
+    }
     finally { setSending(false); busyRef.current = false; }
   };
   const feedback = async (messageId, value) => {
-    try { await chatService.setMessageFeedback(messageId, value); setSession({ ...session, messages: session.messages.map((message) => message.id === messageId ? { ...message, feedback: value } : message) }); toast(value === 'up' ? t('feedbackThanks') : 'Thanks for letting us know. You can request a staff member below.'); }
-    catch (reason) { toast(errorMessage(reason), 'error'); }
+    try { await chatService.setMessageFeedback(messageId, value); setSession({ ...session, messages: session.messages.map((message) => message.id === messageId ? { ...message, feedback: value } : message) }); toast(value === 'up' ? t('feedbackThanks') : 'Thanks for letting us know. You can request a staff member below.', 'info'); }
+    catch (reason) { if (!reason?._toasted) toast(errorMessage(reason), 'error'); }
   };
   const newConversation = () => { if (busyRef.current) return; setSession(null); setParams({}); setInput(''); setError(null); setHistoryOpen(false); inputRef.current?.focus(); };
-  const removeSession = async () => { try { await chatService.deleteSession(deleteId); if (session?.id === deleteId) newConversation(); setDeleteId(null); } catch (reason) { toast(errorMessage(reason), 'error'); } };
+  const removeSession = async () => { try { await chatService.deleteSession(deleteId); if (session?.id === deleteId) newConversation(); setDeleteId(null); toast('Conversation deleted.', 'info'); } catch (reason) { if (!reason?._toasted) toast(errorMessage(reason), 'error'); } };
   const suggestions = [
     { key: 'suggestGujarati', icon: AutoAwesomeRounded, color: '#be824e', label: 'ગુજરાતી', text: t('suggestGujarati') },
     { key: 'suggestHindi', icon: SchoolOutlined, color: '#5f87a4', label: 'हिन्दी', text: t('suggestHindi') },

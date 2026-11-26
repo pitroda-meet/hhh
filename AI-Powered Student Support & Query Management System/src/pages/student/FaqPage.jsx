@@ -21,7 +21,7 @@ export default function FaqPage() {
   const query = useDebouncedValue(search);
   const refs = useAsync(adminService.getReferenceData, [revision]);
   const faqs = useAsync(() => faqService.getFaqs({ search: query, category_id: category }), [query, category, revision]);
-  const vote = async (id, value) => { try { await faqService.setFaqFeedback(id, value); toast(t('feedbackThanks')); } catch (error) { toast(errorMessage(error), 'error'); } };
+  const vote = async (id, value) => { try { await faqService.setFaqFeedback(id, value); toast(t('feedbackThanks'), 'success'); } catch (error) { if (!error?._toasted) toast(errorMessage(error), 'error'); } };
   return <>
     <PageHeader eyebrow={t('verifiedKnowledge')} title={t('faqTitle')} subtitle={t('faqSubtitle')} />
     <Box sx={{ mb: 3, p: { xs: 2.5, sm: 3.5 }, bgcolor: '#eaf1f5', border: '1px solid #dce7ef', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: 3 }}><Box sx={{ width: 53, height: 53, bgcolor: '#fff', borderRadius: '14px', color: '#5b8096', display: { xs: 'none', sm: 'grid' }, placeItems: 'center', flexShrink: 0 }}><MenuBookOutlined sx={{ fontSize: 26 }} /></Box><TextField fullWidth placeholder={t('searchFaqs')} value={search} onChange={(e) => setSearch(e.target.value)} inputProps={{ 'aria-label': t('searchFaqs') }} InputProps={{ startAdornment: <InputAdornment position="start"><SearchRounded sx={{ color: '#8aa0ae', fontSize: 22 }} /></InputAdornment> }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '11px' }, '& .MuiInputBase-input': { py: 1.8 } }} /></Box>

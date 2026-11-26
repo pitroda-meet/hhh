@@ -7,14 +7,22 @@ import { useAsync } from '../hooks/useAsync.js';
 import { ticketService } from '../services/ticketService.js';
 import { faqService } from '../services/faqService.js';
 import { errorMessage, formatDateTime, initials } from '../utils/format.js';
+import { extractValidationErrors, validateFaqSuggestion, validateReplyOrNote } from '../utils/validation.js';
 import { PRIORITIES, STATUSES, STATUS_STYLES } from '../utils/constants.js';
 import { ConfirmDialog, EmptyState, ErrorState, LoadingPage, PriorityChip, SectionTitle, SlaBadge, StatusChip } from './ui.jsx';
 import AttachmentInput from './AttachmentInput.jsx';
 import ReassignDialog from './ReassignDialog.jsx';
 import FeedbackForm from './FeedbackForm.jsx';
 
-function Attachments({ items, number }) {
-  return items?.length > 0 && <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>{items.map((file, i) => <Chip key={`${file.name}-${i}`} label={file.name} icon={<AttachFileRounded sx={{ fontSize: 14 }} />} size="small" variant="outlined" onClick={() => ticketService.downloadAttachment(file, number)} sx={{ maxWidth: 240, color: '#537c95', borderColor: '#d9e4eb' }} />)}</Stack>;
+function Attachments({ items, number, onError }) {
+  const handleDownload = async (file) => {
+    try {
+      await ticketService.downloadAttachment(file, number);
+    } catch (reason) {
+      if (!reason?._toasted) onError?.(errorMessage(reason));
+    }
+  };
+  return items?.length > 0 && <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>{items.map((file, i) => <Chip key={`${file.name}-${i}`} label={file.name} icon={<AttachFileRounded sx={{ fontSize: 14 }} />} size="small" variant="outlined" onClick={() => handleDownload(file)} sx={{ maxWidth: 240, color: '#537c95', borderColor: '#d9e4eb' }} />)}</Stack>;
 }
 
 export default function TicketDetail() {
@@ -33,23 +41,78 @@ export default function TicketDetail() {
   const [handover, setHandover] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [suggestion, setSuggestion] = useState({ question: '', answer: '' });
+  const [suggestErrors, setSuggestErrors] = useState({});
   const [ratingDraft, setRating] = useState(null);
   const [feedbackDraft, setFeedback] = useState(null);
   const rating = ratingDraft ?? ticket?.rating ?? 0;
   const feedback = feedbackDraft ?? ticket?.feedback ?? '';
   const student = user.role === 'student';
   const backPath = student ? '/student/queries' : user.role === 'staff' ? '/staff/inbox' : `/${user.role}/tickets`;
-  const perform = async (action, success) => { setBusy(true); setActionError(null); try { const result = await action(); if (success) toast(success); return result; } catch (reason) { setActionError(errorMessage(reason)); return null; } finally { setBusy(false); } };
+  const perform = async (action, success) => {
+    setBusy(true);
+    setActionError(null);
+    try {
+      const result = await action();
+      if (success) toast(success, 'success');
+      return result;
+    } catch (reason) {
+      const msg = errorMessage(reason);
+      setActionError(msg);
+      if (!reason?._toasted) toast(msg, 'error');
+      return null;
+    } finally {
+      setBusy(false);
+    }
+  };
   const sendReply = async (event) => {
     event.preventDefault();
     const noteMode = composeMode === 'note';
+    const text = noteMode ? internalNote : reply;
+    const validationErr = validateReplyOrNote(text, { isNote: noteMode, hasAttachments: attachments.length > 0 });
+    if (validationErr) {
+      setActionError(validationErr);
+      toast(validationErr, 'warning');
+      return;
+    }
     const result = await perform(() => noteMode ? ticketService.addInternalNote(id, internalNote) : ticketService.replyToTicket(id, { message: reply, attachments }), t(noteMode ? 'internalNoteSaved' : 'replySent'));
     if (result) { if (noteMode) setInternalNote(''); else { setReply(''); setAttachments([]); } }
   };
   const changeStatus = async () => { const result = await perform(() => ticketService.updateTicketStatus(id, nextStatus), `${t('status')}: ${t(nextStatus)}`); if (result) setNextStatus(null); };
-  const sendFeedback = async () => { const result = await perform(() => ticketService.rateTicket(id, { rating, feedback }), t('feedbackThanks')); if (result) setRatingOpen(false); };
-  const openSuggestion = () => { const latestReply = [...ticket.replies].reverse().find((r) => r.user_id !== ticket.student_id); setSuggestion({ question: ticket.subject, answer: latestReply?.message || '' }); setSuggestOpen(true); setActionError(null); };
-  const submitSuggestion = async (event) => { event.preventDefault(); const result = await perform(() => faqService.suggestFaq(id, suggestion), 'FAQ suggestion sent to the administrator for review.'); if (result) setSuggestOpen(false); };
+  const sendFeedback = async () => {
+    if (!rating || rating < 1 || rating > 5) {
+      toast('Please select a star rating between 1 and 5.', 'warning');
+      return;
+    }
+    const result = await perform(() => ticketService.rateTicket(id, { rating, feedback }), t('feedbackThanks'));
+    if (result) setRatingOpen(false);
+  };
+  const openSuggestion = () => { const latestReply = [...ticket.replies].reverse().find((r) => r.user_id !== ticket.student_id); setSuggestion({ question: ticket.subject, answer: latestReply?.message || '' }); setSuggestErrors({}); setSuggestOpen(true); setActionError(null); };
+  const submitSuggestion = async (event) => {
+    event.preventDefault();
+    const check = validateFaqSuggestion(suggestion);
+    if (!check.valid) {
+      setSuggestErrors(check.errors);
+      const firstMsg = Object.values(check.errors)[0];
+      setActionError(firstMsg);
+      toast(firstMsg, 'warning');
+      return;
+    }
+    setSuggestErrors({});
+    try {
+      setBusy(true);
+      setActionError(null);
+      await faqService.suggestFaq(id, suggestion);
+      toast('FAQ suggestion sent to the administrator for review.', 'success');
+      setSuggestOpen(false);
+    } catch (reason) {
+      const msg = errorMessage(reason);
+      setSuggestErrors(extractValidationErrors(reason));
+      setActionError(msg);
+      if (!reason?._toasted) toast(msg, 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
   if (error) return <><Button component={Link} to={backPath} startIcon={<ArrowBackRounded />} sx={{ mb: 2 }}>{t('back')}</Button><ErrorState error={error} onRetry={reload} /></>;
   if (!ticket) return <LoadingPage />;
   const resolved = ['Resolved', 'Closed'].includes(ticket.status);
@@ -76,12 +139,12 @@ export default function TicketDetail() {
     {loading && <LinearProgress sx={{ height: 2, mb: 2 }} />}
     {actionError && !suggestOpen && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setActionError(null)}>{actionError}</Alert>}
     <Grid container spacing={3}><Grid item xs={12} lg={8}>
-      <Card sx={{ mb: 3 }}><CardContent><SectionTitle title={t('description')} /><Typography sx={{ whiteSpace: 'pre-wrap', fontSize: '.86rem', color: '#465e70', lineHeight: 1.9, overflowWrap: 'anywhere' }}>{ticket.description}</Typography><Attachments items={ticket.attachments} number={ticket.ticket_number} /></CardContent></Card>
+      <Card sx={{ mb: 3 }}><CardContent><SectionTitle title={t('description')} /><Typography sx={{ whiteSpace: 'pre-wrap', fontSize: '.86rem', color: '#465e70', lineHeight: 1.9, overflowWrap: 'anywhere' }}>{ticket.description}</Typography><Attachments items={ticket.attachments} number={ticket.ticket_number} onError={(msg) => toast(msg, 'info')} /></CardContent></Card>
       <Card><CardContent><SectionTitle title={t('conversation')} action={<Chip label={`${ticket.replies.length} ${t('actions').toLowerCase()}`} size="small" sx={{ bgcolor: '#f3f6f9', color: 'text.secondary', fontSize: '.63rem' }} />} />
         {!ticket.replies.length && <EmptyState compact title={t('notYet')} description={t('routingStep3')} />}
-        <Stack spacing={2.5}>{ticket.replies.map((message) => <Stack key={message.id} direction="row" spacing={1.4}><Avatar sx={{ width: 33, height: 33, bgcolor: message.user_id === ticket.student_id ? '#f3e9dd' : '#e7f0f5', color: message.user_id === ticket.student_id ? '#a0825e' : '#507c94', fontSize: 11 }}>{initials(message.user?.name)}</Avatar><Box sx={{ flex: 1, minWidth: 0 }}><Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap"><Typography variant="subtitle2">{message.user?.name || t('staff')}</Typography><Typography variant="caption" sx={{ fontSize: '.59rem', bgcolor: '#f3f6f9', color: 'text.secondary', px: .7, borderRadius: 1 }}>{t(message.user?.role || 'staff')}</Typography><Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', fontSize: '.64rem' }}>{formatDateTime(message.created_at)}</Typography></Stack><Box sx={{ mt: .8, bgcolor: message.user_id === ticket.student_id ? '#f9fafb' : '#f1f6fa', p: 2, borderRadius: '0 12px 12px 12px', border: '1px solid #eaf0f4' }}><Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.85 }}>{message.message}</Typography><Attachments items={message.attachments} number={ticket.ticket_number} /></Box></Box></Stack>)}</Stack>
+        <Stack spacing={2.5}>{ticket.replies.map((message) => <Stack key={message.id} direction="row" spacing={1.4}><Avatar sx={{ width: 33, height: 33, bgcolor: message.user_id === ticket.student_id ? '#f3e9dd' : '#e7f0f5', color: message.user_id === ticket.student_id ? '#a0825e' : '#507c94', fontSize: 11 }}>{initials(message.user?.name)}</Avatar><Box sx={{ flex: 1, minWidth: 0 }}><Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap"><Typography variant="subtitle2">{message.user?.name || t('staff')}</Typography><Typography variant="caption" sx={{ fontSize: '.59rem', bgcolor: '#f3f6f9', color: 'text.secondary', px: .7, borderRadius: 1 }}>{t(message.user?.role || 'staff')}</Typography><Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', fontSize: '.64rem' }}>{formatDateTime(message.created_at)}</Typography></Stack><Box sx={{ mt: .8, bgcolor: message.user_id === ticket.student_id ? '#f9fafb' : '#f1f6fa', p: 2, borderRadius: '0 12px 12px 12px', border: '1px solid #eaf0f4' }}><Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.85 }}>{message.message}</Typography><Attachments items={message.attachments} number={ticket.ticket_number} onError={(msg) => toast(msg, 'info')} /></Box></Box></Stack>)}</Stack>
       </CardContent>
-      {ticket.status !== 'Closed' && <Box component="form" onSubmit={sendReply} sx={{ p: 3, borderTop: '1px solid #e8edf2', bgcolor: composeMode === 'note' ? '#fffbf3' : '#fcfdfe' }}>
+      {ticket.status !== 'Closed' && <Box component="form" noValidate onSubmit={sendReply} sx={{ p: 3, borderTop: '1px solid #e8edf2', bgcolor: composeMode === 'note' ? '#fffbf3' : '#fcfdfe' }}>
         {!student && <Tabs value={composeMode} onChange={(_, value) => setComposeMode(value)} sx={{ mb: 2 }}><Tab value="reply" label={t('replyToStudent')} /><Tab value="note" label={t('internalNotes')} /></Tabs>}
         {composeMode === 'note' && <>
           <Alert severity="info" sx={{ mb: 2 }}>{t('internalNotesHint')}</Alert>
@@ -89,7 +152,7 @@ export default function TicketDetail() {
         </>}
         {resolved && composeMode === 'reply' && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>A new reply will reopen this ticket so your department can follow up.</Typography>}
         <TextField value={composeMode === 'note' ? internalNote : reply} onChange={(event) => composeMode === 'note' ? setInternalNote(event.target.value) : setReply(event.target.value)} label={t(composeMode === 'note' ? 'internalNotePlaceholder' : 'replyPlaceholder')} fullWidth multiline minRows={3} inputProps={{ maxLength: 5000 }} disabled={busy} />
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>{composeMode === 'reply' ? <AttachmentInput compact value={attachments} onChange={setAttachments} disabled={busy} /> : <Box />}<Button type="submit" variant="contained" startIcon={busy ? <CircularProgress size={15} color="inherit" /> : <SendRounded sx={{ fontSize: 16 }} />} disabled={busy || (composeMode === 'note' ? !internalNote.trim() : !reply.trim() && !attachments.length)}>{t(composeMode === 'note' ? 'addInternalNote' : 'sendReply')}</Button></Stack>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>{composeMode === 'reply' ? <AttachmentInput compact value={attachments} onChange={setAttachments} disabled={busy} /> : <Box />}<Button type="submit" variant="contained" startIcon={busy ? <CircularProgress size={15} color="inherit" /> : <SendRounded sx={{ fontSize: 16 }} />} disabled={busy}>{t(composeMode === 'note' ? 'addInternalNote' : 'sendReply')}</Button></Stack>
       </Box>}
       </Card>
       {student && resolved && <Card sx={{ mt: 3, bgcolor: '#fffcf7', borderColor: '#efe5d4' }}><CardContent><Stack direction="row" spacing={1.4} alignItems="center"><Avatar sx={{ bgcolor: '#fff1d6', color: '#c99943' }}><StarRounded /></Avatar><Box><Typography variant="h5">{t('resolutionFeedback')}</Typography><Typography variant="body2" color="text.secondary">{t('feedbackHint')}</Typography></Box></Stack>{ticket.rating && <Alert severity="success" sx={{ mt: 2 }}>{t('feedbackThanks')}</Alert>}<Button onClick={() => setRatingOpen(true)} size="small" sx={{ mt: 1.5 }}>{t('openRatingForm')}</Button>{!ratingOpen && feedbackForm}</CardContent></Card>}
@@ -102,7 +165,7 @@ export default function TicketDetail() {
     </Grid></Grid>
     <ReassignDialog ticket={ticket} open={handover} onClose={() => setHandover(false)} onSaved={(data) => { if (user.role === 'staff' && !user.department_ids.includes(data.department_id)) navigate('/staff/inbox'); else reload(); }} />
     <ConfirmDialog open={Boolean(nextStatus)} title={`${t('changeStatus')}: ${t(nextStatus || ticket.status)}`} message={`Update ${ticket.ticket_number} to ${t(nextStatus || ticket.status)}? The student will be notified.`} onClose={() => setNextStatus(null)} onConfirm={changeStatus} loading={busy} color={nextStatus === 'Escalated' ? 'error' : 'primary'}>{actionError && <Alert severity="error" sx={{ mt: 2 }}>{actionError}</Alert>}</ConfirmDialog>
-    <Dialog open={suggestOpen} onClose={busy ? undefined : () => setSuggestOpen(false)} fullWidth maxWidth="sm"><form onSubmit={submitSuggestion}><DialogTitle>{t('suggestFaq')}</DialogTitle><DialogContent><Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Write a reusable answer without a student’s personal details. An administrator will review it and complete the Gujarati and Hindi translations before publication.</Typography>{actionError && <Alert severity="error" sx={{ mb: 2 }}>{actionError}</Alert>}<Stack spacing={2.5}><TextField label={t('faqQuestion')} required value={suggestion.question} onChange={(e) => setSuggestion({ ...suggestion, question: e.target.value })} /><TextField label={t('faqAnswer')} required multiline minRows={5} value={suggestion.answer} onChange={(e) => setSuggestion({ ...suggestion, answer: e.target.value })} /></Stack></DialogContent><DialogActions><Button onClick={() => setSuggestOpen(false)} disabled={busy}>{t('cancel')}</Button><Button type="submit" variant="contained" disabled={busy}>{t('suggestFaq')}</Button></DialogActions></form></Dialog>
+    <Dialog open={suggestOpen} onClose={busy ? undefined : () => setSuggestOpen(false)} fullWidth maxWidth="sm"><form noValidate onSubmit={submitSuggestion}><DialogTitle>{t('suggestFaq')}</DialogTitle><DialogContent><Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Write a reusable answer without a student’s personal details. An administrator will review it and complete the Gujarati and Hindi translations before publication.</Typography>{actionError && <Alert severity="error" sx={{ mb: 2 }}>{actionError}</Alert>}<Stack spacing={2.5}><TextField label={t('faqQuestion')} required value={suggestion.question} onChange={(e) => { setSuggestion({ ...suggestion, question: e.target.value }); if (suggestErrors.question) setSuggestErrors((p) => ({ ...p, question: undefined })); }} error={Boolean(suggestErrors.question)} helperText={suggestErrors.question} /><TextField label={t('faqAnswer')} required multiline minRows={5} value={suggestion.answer} onChange={(e) => { setSuggestion({ ...suggestion, answer: e.target.value }); if (suggestErrors.answer) setSuggestErrors((p) => ({ ...p, answer: undefined })); }} error={Boolean(suggestErrors.answer)} helperText={suggestErrors.answer} /></Stack></DialogContent><DialogActions><Button onClick={() => setSuggestOpen(false)} disabled={busy}>{t('cancel')}</Button><Button type="submit" variant="contained" disabled={busy}>{t('suggestFaq')}</Button></DialogActions></form></Dialog>
     <Dialog open={ratingOpen} onClose={() => setRatingOpen(false)} fullWidth maxWidth="sm"><DialogTitle>{t('resolutionFeedback')}</DialogTitle><DialogContent>{feedbackForm}</DialogContent><DialogActions><Button onClick={() => setRatingOpen(false)}>{t('close')}</Button></DialogActions></Dialog>
   </>;
 }

@@ -48,11 +48,17 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'min:2', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:8'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'confirm_password' => ['sometimes', 'same:password'],
+            'password_confirmation' => ['sometimes', 'same:password'],
+            'phone' => ['nullable', 'string', 'regex:/^[0-9+\-\s()]{7,20}$/', 'max:30'],
             'institute' => ['nullable', 'string', 'max:255'],
             'trade' => ['nullable', 'string', 'max:255'],
             'enrollment_number' => ['nullable', 'string', 'max:60'],
             'language' => ['nullable', 'in:en,hi,gu'],
+        ], [
+            'phone.regex' => 'Enter a valid mobile number (7–20 digits).',
+            'confirm_password.same' => 'The passwords do not match.',
+            'password_confirmation.same' => 'The passwords do not match.',
         ]);
 
         $email = strtolower(trim($validated['email']));
@@ -146,13 +152,15 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $validated = $request->validate([
-            'name' => ['required', 'string', 'min:1', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'phone' => ['nullable', 'string', 'regex:/^[0-9+\-\s()]{7,20}$/', 'max:30'],
             'institute' => ['nullable', 'string', 'max:255'],
             'trade' => ['nullable', 'string', 'max:255'],
             'year' => ['nullable', 'string', 'max:40'],
             'language' => ['nullable', 'in:en,hi,gu'],
             'designation' => ['nullable', 'string', 'max:100'],
+        ], [
+            'phone.regex' => 'Enter a valid mobile number (7–20 digits).',
         ]);
 
         foreach (['name', 'phone', 'institute', 'trade', 'year', 'language'] as $field) {

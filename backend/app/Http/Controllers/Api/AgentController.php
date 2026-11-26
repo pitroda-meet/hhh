@@ -25,7 +25,11 @@ class AgentController extends Controller
 
     public function createSession(Request $request): JsonResponse
     {
-        $language = (string) $request->input('language', 'en');
+        $validated = $request->validate([
+            'language' => ['nullable', 'in:en,hi,gu'],
+        ]);
+
+        $language = (string) ($validated['language'] ?? 'en');
 
         return ApiResponse::success($this->chatService->createSession($request->user(), $language), 'Session created', [], 201);
     }

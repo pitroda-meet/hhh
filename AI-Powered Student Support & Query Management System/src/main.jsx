@@ -14,6 +14,7 @@ import '@fontsource/noto-sans-gujarati/400.css';
 import '@fontsource/noto-sans-gujarati/600.css';
 import '@fontsource/noto-sans-devanagari/400.css';
 import '@fontsource/noto-sans-devanagari/600.css';
+import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 import App from './App.jsx';
 import theme from './theme/index.js';

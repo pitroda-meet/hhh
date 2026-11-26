@@ -89,14 +89,12 @@ class FaqController extends Controller
     public function suggest(Request $request, string $id): JsonResponse
     {
         $ticket = $this->ticketService->findAccessibleTicket($id, $request->user());
-        $question = trim((string) $request->input('question', ''));
-        $answer = trim((string) $request->input('answer', ''));
-
-        if ($question === '' || $answer === '') {
-            throw ValidationException::withMessages([
-                'question' => ['Enter a reusable question and an answer.'],
-            ]);
-        }
+        $validated = $request->validate([
+            'question' => ['required', 'string', 'min:5', 'max:500'],
+            'answer' => ['required', 'string', 'min:5', 'max:5000'],
+        ]);
+        $question = trim($validated['question']);
+        $answer = trim($validated['answer']);
 
         $actor = $request->user();
         $now = ApiResponse::appNow();

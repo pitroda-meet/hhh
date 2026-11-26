@@ -28,8 +28,8 @@ export default function AppLayout({ role }) {
   const isChat = location.pathname === '/student/chat';
   useEffect(() => { window.scrollTo({ top: 0 }); }, [location.pathname]);
   const toggleSidebar = () => { if (desktop) { localStorage.setItem('sahay.sidebar.collapsed', String(!collapsed)); setCollapsed(!collapsed); } else setMobileOpen(mobileOpen === location.pathname ? null : location.pathname); };
-  const signOut = async () => { try { await logout(); navigate('/login'); } catch (error) { toast(errorMessage(error), 'error'); } };
-  const submitSearch = (event) => { event.preventDefault(); const base = role === 'student' ? '/student/queries' : role === 'staff' ? '/staff/inbox' : `/${role}/tickets`; navigate(`${base}?search=${encodeURIComponent(search)}`); setSearch(''); };
+  const signOut = async () => { try { await logout(); toast('Signed out successfully.', 'info'); navigate('/login'); } catch (error) { if (!error?._toasted) toast(errorMessage(error), 'error'); } };
+  const submitSearch = (event) => { event.preventDefault(); const q = search.trim(); if (!q) { toast('Enter a keyword or ticket ID to search.', 'warning'); return; } const base = role === 'student' ? '/student/queries' : role === 'staff' ? '/staff/inbox' : `/${role}/tickets`; navigate(`${base}?search=${encodeURIComponent(q)}`); setSearch(''); };
 
   const sidebar = <Stack sx={{ height: '100%', bgcolor: '#fff' }}>
     <Stack direction="row" alignItems="center" justifyContent={slim ? 'center' : 'space-between'} sx={{ px: slim ? 1 : 2.7, height: 85, flexShrink: 0 }}><Brand collapsed={slim} /></Stack>

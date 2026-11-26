@@ -217,7 +217,10 @@ class AdminController extends Controller
 
     public function simulateEscalation(Request $request): JsonResponse
     {
-        $hours = max(1, min(168, (int) $request->input('hours', 24)));
+        $validated = $request->validate([
+            'hours' => ['nullable', 'integer', 'min:1', 'max:168'],
+        ]);
+        $hours = (int) ($validated['hours'] ?? 24);
         $result = $this->escalationService->evaluate($hours, $request->user()->id);
 
         return ApiResponse::success($result);
@@ -278,8 +281,17 @@ class AdminController extends Controller
             $roleName = (string) ($input['role'] ?? '');
             $active = array_key_exists('active', $input) ? (bool) $input['active'] : true;
 
-            if ($name === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw ValidationException::withMessages(['email' => ['A name and valid email address are required.']]);
+            if (mb_strlen($name) < 2) {
+                throw ValidationException::withMessages(['name' => ['Name must be at least 2 characters.']]);
+            }
+
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw ValidationException::withMessages(['email' => ['A valid email address is required.']]);
+            }
+
+            $phone = trim((string) ($input['phone'] ?? ''));
+            if ($phone !== '' && ! preg_match('/^[0-9+\-\s()]{7,20}$/', $phone)) {
+                throw ValidationException::withMessages(['phone' => ['Enter a valid mobile number (7–20 digits).']]);
             }
 
             $role = Role::query()->where('name', $roleName)->first();
@@ -300,7 +312,7 @@ class AdminController extends Controller
                 throw ValidationException::withMessages(['active' => ['Keep your current administrator account active.']]);
             }
 
-            if ($record && $roleName !== $record->role_name && Ticket::query()->where('student_id', $record->id)->orWhere('assigned_to', $record->id)->exists()) {
+            if ($record && $roleName !== $record->role_name && Ticket::query()->where(fn ($q) => $q->where('student_id', $record->id)->orWhere('assigned_to', $record->id))->exists()) {
                 throw ValidationException::withMessages(['role' => ['This user has ticket history. Keep their role and create a separate account for a different role.']]);
             }
 
@@ -393,8 +405,8 @@ class AdminController extends Controller
             $slaHours = (int) ($input['sla_hours'] ?? 24);
             $active = array_key_exists('active', $input) ? (bool) $input['active'] : true;
 
-            if ($name === '' || $code === '') {
-                throw ValidationException::withMessages(['name' => ['Department name and code are required.']]);
+            if (mb_strlen($name) < 2 || $code === '' || ! preg_match('/^[A-Z0-9_-]{2,12}$/', $code)) {
+                throw ValidationException::withMessages(['name' => ['Department name (min 2 chars) and code (2–12 alphanumeric chars) are required.']]);
             }
             if ($slaHours < 1 || $slaHours > 168) {
                 throw ValidationException::withMessages(['sla_hours' => ['SLA must be between 1 and 168 hours.']]);
@@ -428,8 +440,8 @@ class AdminController extends Controller
             $departmentId = (int) ($input['department_id'] ?? 0);
             $active = array_key_exists('active', $input) ? (bool) $input['active'] : true;
 
-            if ($name === '') {
-                throw ValidationException::withMessages(['name' => ['A category name is required.']]);
+            if (mb_strlen($name) < 2) {
+                throw ValidationException::withMessages(['name' => ['Category name must be at least 2 characters.']]);
             }
             if (! Department::query()->where('id', $departmentId)->where('active', true)->exists()) {
                 throw ValidationException::withMessages(['department_id' => ['Map this category to an active department.']]);
@@ -457,8 +469,8 @@ class AdminController extends Controller
         $priority = (string) ($input['priority'] ?? 'All');
         $enabled = array_key_exists('enabled', $input) ? (bool) $input['enabled'] : true;
 
-        if ($name === '') {
-            throw ValidationException::withMessages(['name' => ['Give the escalation rule a name.']]);
+        if (mb_strlen($name) < 2) {
+            throw ValidationException::withMessages(['name' => ['Give the escalation rule a name (at least 2 characters).']]);
         }
         if ($threshold < 1 || $threshold > 720) {
             throw ValidationException::withMessages(['threshold_hours' => ['Threshold must be between 1 and 720 hours.']]);

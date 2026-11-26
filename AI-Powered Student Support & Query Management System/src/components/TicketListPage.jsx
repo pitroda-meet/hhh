@@ -85,8 +85,8 @@ function TicketListContent({ searchParams }) {
   const staff = user.role === "staff";
   const claim = async (ticket) => {
     setClaiming(ticket.id);
-    try { await ticketService.claimTicket(ticket.id); toast(t('ticketClaimed')); }
-    catch (error) { toast(errorMessage(error), 'error'); }
+    try { await ticketService.claimTicket(ticket.id); toast(t('ticketClaimed'), 'success'); }
+    catch (error) { if (!error?._toasted) toast(errorMessage(error), 'error'); }
     finally { setClaiming(null); }
   };
   return (

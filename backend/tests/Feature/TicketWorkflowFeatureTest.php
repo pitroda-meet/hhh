@@ -113,4 +113,26 @@ class TicketWorkflowFeatureTest extends TestCase
 
         $this->withToken($staffToken)->getJson("/api/staff/queries/{$created['id']}")->assertStatus(403);
     }
+
+    public function test_server_side_validation_rejects_invalid_ticket_and_attachment_payloads(): void
+    {
+        $this->seed();
+        Storage::fake('local');
+
+        $studentToken = $this->postJson('/api/auth/demo-login', ['role' => 'student'])->json('data.token');
+
+        $this->withToken($studentToken)->postJson('/api/student/queries', [
+            'subject' => 'Hi',
+            'description' => 'Short',
+            'category_id' => 2,
+        ])->assertStatus(422)->assertJsonValidationErrors(['subject', 'description']);
+
+        $badFile = UploadedFile::fake()->create('script.exe', 50, 'application/octet-stream');
+        $this->withToken($studentToken)->post('/api/student/queries', [
+            'subject' => 'Valid subject line',
+            'description' => 'Valid description with more than ten characters.',
+            'category_id' => 2,
+            'files' => [$badFile],
+        ])->assertStatus(422);
+    }
 }

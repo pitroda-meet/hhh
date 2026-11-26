@@ -224,7 +224,8 @@ class TicketService
         }
 
         if (($params['sort'] ?? null) === 'priority') {
-            $query->orderByRaw("FIELD(priority, 'Critical', 'High', 'Medium', 'Low')")->orderByDesc('created_at');
+            $query->orderByRaw("CASE priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END")
+                ->orderByDesc('created_at');
         } else {
             $query->orderByDesc('created_at')->orderByDesc('id');
         }

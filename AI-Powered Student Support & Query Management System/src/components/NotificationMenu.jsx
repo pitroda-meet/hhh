@@ -11,7 +11,7 @@ export default function NotificationMenu() {
   const [anchor, setAnchor] = useState(null);
   const navigate = useNavigate();
   const unread = notifications.filter((n) => !n.read_at).length;
-  const read = async (id) => { try { await markRead(id); } catch (error) { toast(errorMessage(error), 'error'); } };
+  const read = async (id) => { try { await markRead(id); if (id === 'all') toast('All notifications marked as read.', 'info'); } catch (error) { if (!error?._toasted) toast(errorMessage(error), 'error'); } };
   const openNotification = async (notification) => {
     await read(notification.id);
     setAnchor(null);

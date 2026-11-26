@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import ProtectedRoute, { HomeRedirect } from './components/ProtectedRoute.jsx';
 import { LoadingPage } from './components/ui.jsx';
 import StudentLayout from './layouts/StudentLayout.jsx';
@@ -61,5 +62,17 @@ export default function App() {
       </Route>
     </Route>)}
     <Route path="*" element={<NotFoundPage />} />
-  </Routes></Suspense></div>;
+  </Routes></Suspense>
+  <ToastContainer
+    position="top-right"
+    autoClose={4000}
+    hideProgressBar={false}
+    newestOnTop
+    closeOnClick
+    pauseOnFocusLoss
+    draggable
+    pauseOnHover
+    theme="light"
+  />
+  </div>;
 }
